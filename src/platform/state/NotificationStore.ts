@@ -19,6 +19,7 @@ export interface NotificationItem {
   readonly body: string;
   readonly read: boolean;
   readonly createdAt: Date;
+  readonly category?: string;
 }
 
 export interface NotificationState {
@@ -47,7 +48,7 @@ class NotificationStoreImpl {
   }
 
   /** Adds a notification (unread by default) and recomputes unreadCount. */
-  public addNotification(item: { title: string; body: string }): void {
+  public addNotification(item: { title: string; body: string; category?: string }): void {
     const current = this.store.getState();
     const full: NotificationItem = {
       id: this.generateId(),
@@ -55,6 +56,7 @@ class NotificationStoreImpl {
       body: item.body,
       read: false,
       createdAt: new Date(),
+      category: item.category,
     };
     const items = [full, ...current.items];
     this.store.setState({ items, unreadCount: items.filter((n) => !n.read).length });
@@ -72,6 +74,11 @@ class NotificationStoreImpl {
     const current = this.store.getState();
     const items = current.items.map((n) => ({ ...n, read: true }));
     this.store.setState({ items, unreadCount: 0 });
+  }
+
+  /** Replaces all notifications with the given list and recomputes unreadCount. */
+  public setNotifications(items: NotificationItem[]): void {
+    this.store.setState({ items, unreadCount: items.filter((n) => !n.read).length });
   }
 
   /** Clears all notifications. Use on logout / user switch. */

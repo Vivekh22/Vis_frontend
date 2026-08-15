@@ -8,9 +8,11 @@
  *
  * Two functions:
  *   - injectStyles:       injects component-specific CSS text.
- *   - injectGlobalTokens: injects the app's CSS custom properties (design
- *                         tokens + theme variables) so components can read
- *                         var(--color-primary) etc.
+ *   - injectGlobalTokens: injects the app's structural CSS custom properties
+ *                         (spacing, typography, radius, shadow) so components
+ *                         can read var(--space-4) etc. Color values are set by
+ *                         applyTheme() on document.documentElement.style and
+ *                         cascade through Shadow DOM via inheritance.
  *
  * Design note — why textContent, not SafeHtml:
  *   injectStyles uses element.textContent (NOT innerHTML) deliberately. CSS
@@ -24,14 +26,13 @@
  *   Unlike regular CSS rules, CSS custom properties (variables) DO inherit
  *   through Shadow DOM boundaries by design. This is the mechanism that lets a
  *   theme switch update every Shadow-isolated component instantly: the theme
- *   sets variables at the document root, and every component's Shadow DOM reads
- *   them via var(...). injectGlobalTokens duplicates the token definitions into
- *   the Shadow Root as a fallback so tokens resolve even if the root variables
- *   are not yet set, but the live theme still works because the root values
- *   cascade in.
+ *   sets variables at the document root via applyTheme(), and every component's
+ *   Shadow DOM reads them via var(...). injectGlobalTokens injects the
+ *   structural token definitions into the Shadow Root as a fallback so tokens
+ *   resolve even if the root variables are not yet set, but the live theme
+ *   still works because the root values cascade in.
  */
 import { TOKEN_CSS_TEXT } from '../../styles/tokens';
-import { THEME_VARIABLE_CSS_TEXT } from '../../styles/theme';
 
 /**
  * Injects a <style> element with the given CSS text into a ShadowRoot.
@@ -45,17 +46,16 @@ export function injectStyles(shadow: ShadowRoot, cssText: string): void {
 }
 
 /**
- * Injects the app's CSS custom properties (design tokens + current theme
- * variables) into a ShadowRoot so the component can read var(--color-primary)
- * and all other tokens.
+ * Injects the app's structural CSS custom properties (design tokens: spacing,
+ * typography, radius, shadow) into a ShadowRoot so the component can read
+ * var(--space-4) and all other structural tokens.
  *
- * CSS custom properties inherit through Shadow DOM boundaries by design, so in
- * most cases the :root definitions already cascade in. This injection
- * guarantees resolution even before the root is set, and keeps each component
- * self-contained.
+ * Color values (var(--color-primary), etc.) are set by applyTheme() on
+ * document.documentElement.style and cascade through Shadow DOM via CSS
+ * custom property inheritance — no injection needed for colors.
  */
 export function injectGlobalTokens(shadow: ShadowRoot): void {
   const style = document.createElement('style');
-  style.textContent = TOKEN_CSS_TEXT + '\n' + THEME_VARIABLE_CSS_TEXT;
+  style.textContent = TOKEN_CSS_TEXT;
   shadow.appendChild(style);
 }

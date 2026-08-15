@@ -2,133 +2,233 @@
  * theme.ts — styles/
  *
  * Purpose:
- *   Light / Dark / System Default theme support, driven entirely by CSS custom
+ *   Light / Dark / System theme system, driven entirely by CSS custom
  *   properties. A theme switch updates the entire app instantly — every
  *   Shadow-isolated component reads the same root variables — without a
  *   re-render or reload.
  *
+ * Architecture:
+ *   - tokens.ts defines SEMANTIC color names + structural scale (no color values).
+ *   - THIS file defines lightPalette / darkPalette: actual color values per theme.
+ *   - applyTheme() writes every semantic color as a CSS custom property onto
+ *     document.documentElement.style, which cascades through Shadow DOM.
+ *   - ThemeStore (built on platform/state/Store.ts) holds { mode, resolvedTheme }.
+ *   - initThemeSystem() reads localStorage, resolves 'system' against
+ *     prefers-color-scheme, applies, and attaches a live media-query listener.
+ *   - setThemeMode() updates the store, persists, re-applies, and manages the
+ *     media-query listener.
+ *
+ * Storage distinction (documented):
+ *   Theme preference is NOT auth-sensitive — it's a cosmetic user preference.
+ *   Plain localStorage is acceptable here, unlike TokenStorage's stricter
+ *   handling of auth tokens. This is an intentional, documented distinction:
+ *   TokenStorage exists because auth tokens are security-sensitive credentials
+ *   that must never be accessible to JavaScript in a production httpOnly-cookie
+ *   model. Theme preference has no security implication and localStorage is
+ *   the appropriate, simple mechanism for it.
+ *
  * System Default:
- *   Respects the OS-level `prefers-color-scheme` media query and updates LIVE
- *   if the OS setting changes mid-session (an active media-query listener), not
- *   just read once at load.
- *
- * How it works with Shadow DOM:
- *   CSS custom properties (variables) inherit through Shadow DOM boundaries by
- *   design — unlike regular CSS rules. The theme sets variables at the document
- *   root (:root / [data-theme]); every component's Shadow DOM reads them via
- *   var(...). This is the mechanism that makes theming work consistently across
- *   every Shadow-isolated component without injecting a full theme stylesheet
- *   into each one.
- *
- * THEME_VARIABLE_CSS_TEXT:
- *   The theme-scoped variable overrides. Components always read var(--color-bg)
- *   etc.; this CSS maps the current theme to concrete values.
+ *   'system' mode respects the OS-level prefers-color-scheme media query and
+ *   updates LIVE if the OS setting changes mid-session (an active media-query
+ *   listener), not just read once at load.
  */
+import { Store } from '../platform/state/Store';
+import { SEMANTIC_COLOR_CSS_VARS } from './tokens';
+
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type ResolvedTheme = 'light' | 'dark';
 
 /**
- * Theme variable CSS. The `[data-theme]` attribute on <html> selects the theme.
- * The @media block applies dark values when no explicit theme is set and the OS
- * prefers dark — this is the "System Default" behaviour.
+ * Light palette — deliberate, premium-feeling color choices.
+ * Primary: deep indigo (#4f46e5) — confident, modern, not generic Bootstrap blue.
+ * Surfaces: warm-tinted neutrals (slate) for depth without coldness.
+ * Text: near-black slate for high contrast and readability.
  */
-export const THEME_VARIABLE_CSS_TEXT = `
-:root,
-[data-theme="light"] {
-  --color-bg: #ffffff;
-  --color-surface: #f8fafc;
-  --color-surface-2: #f1f5f9;
-  --color-text-primary: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-primary: #4f46e5;
-  --color-primary-foreground: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+export const lightPalette: Readonly<Record<string, string>> = {
+  colorPrimary: '#4f46e5',
+  colorPrimaryForeground: '#ffffff',
+  colorAccent: '#6366f1',
+  colorBg: '#ffffff',
+  colorSurface: '#f8fafc',
+  colorSurface2: '#f1f5f9',
+  colorTextPrimary: '#0f172a',
+  colorTextMuted: '#64748b',
+  colorBorder: '#e2e8f0',
+  colorDanger: '#dc2626',
+  colorDangerForeground: '#ffffff',
+  colorSuccess: '#16a34a',
+  colorWarning: '#d97706',
+};
+
+/**
+ * Dark palette — deep blue-black surfaces with adjusted contrast.
+ * Primary: lighter indigo (#818cf8) for visibility on dark backgrounds.
+ * Surfaces: layered blue-grays (#0b1120 → #1e293b) for spatial depth.
+ * Text: soft slate (#e2e8f0) to reduce eye strain in low light.
+ */
+export const darkPalette: Readonly<Record<string, string>> = {
+  colorPrimary: '#818cf8',
+  colorPrimaryForeground: '#0b1120',
+  colorAccent: '#a5b4fc',
+  colorBg: '#0b1120',
+  colorSurface: '#111827',
+  colorSurface2: '#1e293b',
+  colorTextPrimary: '#e2e8f0',
+  colorTextMuted: '#94a3b8',
+  colorBorder: '#1e293b',
+  colorDanger: '#ef4444',
+  colorDangerForeground: '#ffffff',
+  colorSuccess: '#22c55e',
+  colorWarning: '#f59e0b',
+};
+
+// ---------------------------------------------------------------------------
+// ThemeStore — built on platform/state/Store.ts, consistent with AuthStore etc.
+// ---------------------------------------------------------------------------
+
+interface ThemeState {
+  mode: ThemeMode;
+  resolvedTheme: ResolvedTheme;
 }
 
-[data-theme="dark"] {
-  --color-bg: #0b1120;
-  --color-surface: #111827;
-  --color-surface-2: #1e293b;
-  --color-text-primary: #e2e8f0;
-  --color-text-muted: #94a3b8;
-  --color-border: #1e293b;
-  --color-primary: #6366f1;
-  --color-primary-foreground: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-}
+const INITIAL_THEME_STATE: ThemeState = {
+  mode: 'system',
+  resolvedTheme: 'light',
+};
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --color-bg: #0b1120;
-    --color-surface: #111827;
-    --color-surface-2: #1e293b;
-    --color-text-primary: #e2e8f0;
-    --color-text-muted: #94a3b8;
-    --color-border: #1e293b;
-    --color-primary: #6366f1;
-    --color-primary-foreground: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+class ThemeStoreImpl {
+  private readonly store: Store<ThemeState> = new Store<ThemeState>(INITIAL_THEME_STATE);
+
+  public getState(): ThemeState {
+    return this.store.getState();
+  }
+
+  public subscribe(callback: (newState: ThemeState, previousState: ThemeState) => void): () => void {
+    return this.store.subscribe(callback);
+  }
+
+  /** Sets the mode and resolved theme, notifying subscribers. */
+  public setMode(mode: ThemeMode, resolvedTheme: ResolvedTheme): void {
+    this.store.setState({ mode, resolvedTheme });
+  }
+
+  /** Updates only the resolved theme (used by the media-query listener). */
+  public setResolvedTheme(resolvedTheme: ResolvedTheme): void {
+    const current = this.store.getState();
+    this.store.setState({ mode: current.mode, resolvedTheme });
   }
 }
-`;
 
-class ThemeManager {
-  private current: ThemeMode = 'system';
-  private mediaListener: (() => void) | null = null;
-  private cssInjected = false;
+export const themeStore = new ThemeStoreImpl();
 
-  /** Injects the theme CSS into <head> (once) and applies the initial theme. */
-  public init(initial: ThemeMode = 'system'): void {
-    this.injectCss();
-    this.setTheme(initial);
-  }
+// ---------------------------------------------------------------------------
+// Core theme functions
+// ---------------------------------------------------------------------------
 
-  /**
-   * Switches theme. For 'system', applies the OS preference and registers a
-   * live media-query listener so OS changes mid-session update the app
-   * immediately. For explicit 'light'/'dark', removes the listener.
-   */
-  public setTheme(mode: ThemeMode): void {
-    this.current = mode;
-    if (this.mediaListener) {
-      this.mediaListener();
-      this.mediaListener = null;
+const STORAGE_KEY = 'va-theme-mode';
+
+/**
+ * Writes every semantic color as a CSS custom property onto
+ * document.documentElement.style. These cascade through Shadow DOM
+ * boundaries by design, so every Shadow-isolated component reads them
+ * via var(--color-primary) etc.
+ */
+export function applyTheme(resolvedTheme: ResolvedTheme): void {
+  const palette = resolvedTheme === 'dark' ? darkPalette : lightPalette;
+  const root = document.documentElement;
+  for (const [name, value] of Object.entries(palette)) {
+    const cssVar = SEMANTIC_COLOR_CSS_VARS[name];
+    if (cssVar) {
+      root.style.setProperty(cssVar, value);
     }
-    if (mode === 'system') {
-      this.applySystem();
-      this.watchSystem();
-    } else {
-      document.documentElement.setAttribute('data-theme', mode);
-    }
   }
+  root.setAttribute('data-theme', resolvedTheme);
+}
 
-  public getTheme(): ThemeMode {
-    return this.current;
+/**
+ * Resolves a ThemeMode to a concrete 'light' | 'dark' value.
+ * 'system' mode queries the OS-level prefers-color-scheme media query.
+ */
+function resolveTheme(mode: ThemeMode): ResolvedTheme {
+  if (mode === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
+  return mode;
+}
 
-  private applySystem(): void {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-  }
+// Module-level media-query listener management
+let mediaListener: (() => void) | null = null;
 
-  private watchSystem(): void {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (): void => this.applySystem();
-    mq.addEventListener('change', handler);
-    this.mediaListener = (): void => mq.removeEventListener('change', handler);
-  }
+function attachSystemListener(): void {
+  detachSystemListener();
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const handler = (): void => {
+    const resolved = resolveTheme('system');
+    themeStore.setResolvedTheme(resolved);
+    applyTheme(resolved);
+  };
+  mq.addEventListener('change', handler);
+  mediaListener = (): void => mq.removeEventListener('change', handler);
+}
 
-  private injectCss(): void {
-    if (this.cssInjected) return;
-    const style = document.createElement('style');
-    style.id = 'va-theme-variables';
-    style.textContent = THEME_VARIABLE_CSS_TEXT;
-    document.head.appendChild(style);
-    this.cssInjected = true;
+function detachSystemListener(): void {
+  if (mediaListener) {
+    mediaListener();
+    mediaListener = null;
   }
 }
 
-export const themeManager = new ThemeManager();
+/**
+ * Initializes the theme system. Called once at app bootstrap (main.ts).
+ *
+ * 1. Reads any previously-stored theme preference from localStorage.
+ * 2. Defaults to 'system' if none stored.
+ * 3. Resolves 'system' against prefers-color-scheme.
+ * 4. Calls applyTheme() to set CSS custom properties on documentElement.
+ * 5. Attaches a live media-query listener so 'system' mode updates if the
+ *    OS setting changes mid-session.
+ */
+export function initThemeSystem(): void {
+  let storedMode: ThemeMode = 'system';
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      storedMode = stored;
+    }
+  } catch {
+    // localStorage may be unavailable (private mode, etc.) — default to 'system'.
+  }
+
+  const resolved = resolveTheme(storedMode);
+  themeStore.setMode(storedMode, resolved);
+  applyTheme(resolved);
+
+  if (storedMode === 'system') {
+    attachSystemListener();
+  }
+}
+
+/**
+ * Sets the theme mode. Called by the theme toggle UI.
+ *
+ * Updates ThemeStore, persists the choice to localStorage, re-resolves/re-applies
+ * the theme, and manages the media-query listener (attached for 'system',
+ * detached for explicit 'light'/'dark').
+ */
+export function setThemeMode(mode: ThemeMode): void {
+  const resolved = resolveTheme(mode);
+  themeStore.setMode(mode, resolved);
+  applyTheme(resolved);
+
+  try {
+    localStorage.setItem(STORAGE_KEY, mode);
+  } catch {
+    // localStorage may be unavailable — theme still works for this session.
+  }
+
+  if (mode === 'system') {
+    attachSystemListener();
+  } else {
+    detachSystemListener();
+  }
+}

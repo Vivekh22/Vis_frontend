@@ -16,7 +16,7 @@ import { html } from './rendering/SafeHtml';
 import { authStore } from './state/AuthStore';
 import { Route } from './router/Route';
 import { Router } from './router/Router';
-import { themeManager } from '../styles/theme';
+import { initThemeSystem } from '../styles/theme';
 import { TOKEN_CSS_TEXT } from '../styles/tokens';
 
 class WelcomePage extends BaseComponent {
@@ -98,7 +98,7 @@ export function bootstrapIntegrationDemo(root: HTMLElement): Router {
   tokenStyle.textContent = TOKEN_CSS_TEXT;
   document.head.appendChild(tokenStyle);
 
-  themeManager.init('system');
+  initThemeSystem();
 
   const routes = [
     new Route({

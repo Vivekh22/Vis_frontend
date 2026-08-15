@@ -3,3 +3,11 @@ dist/
 .vite/
 *.log
 .DS_Store
+
+# Environment files — never track real secrets
+.env
+.env.local
+.env.*.local
+
+# Keep .env.example tracked (it's a template with no real secrets)
+!.env.example

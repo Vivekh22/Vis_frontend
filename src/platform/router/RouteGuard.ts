@@ -16,64 +16,62 @@
  *   by a sufficiently motivated attacker manipulating the client directly.
  *   This distinction is security-critical and must not be left implicit.
  *
- * Permission checking:
- *   When route.requiredPermission is set, RouteGuard delegates to an injectable
- *   PermissionChecker (default: a real rank-based check against the user's
- *   permission map). services/PermissionService.ts (built in a later part)
- *   replaces the default checker via setPermissionChecker() at boot.
+ * Permission checking — TWO-DIMENSIONAL (Part 3 reconciliation):
+ *   RouteGuard now consults a real PermissionGrant instance via the injected
+ *   PermissionChecker. This closes Part 1's known limitation: the old
+ *   DefaultPermissionChecker checked ONLY the module-matrix dimension and
+ *   ignored the client-allowlist dimension entirely. The new
+ *   GrantBasedPermissionChecker checks BOTH dimensions:
+ *     (1) client allowlist — via canAccessClient() when route.targetClientId is set;
+ *     (2) module permission matrix — via hasPermission().
+ *   An Admin acting on a client OUTSIDE their allowedClientIds is now correctly
+ *   denied at the client-allowlist level, the exact gap Part 1 left open.
  */
 import { Route } from './Route';
 import { authStore } from '../state/AuthStore';
 import type { User, PermissionLevel } from '../types';
+import { PermissionGrant } from '../../core/value-objects/PermissionGrant';
+import { PERMISSION_LEVEL_RANK } from '../../core/enums/PermissionLevel';
 
 export interface PermissionChecker {
   hasPermission(user: User, module: string, level: PermissionLevel): boolean;
+  canAccessClient(user: User, clientId: string): boolean;
 }
 
-/** Rank ordering of permission levels — none < view < edit < manage. */
-const LEVEL_RANK: Record<PermissionLevel, number> = {
-  none: 0,
-  view: 1,
-  edit: 2,
-  approve: 3,
-};
-
 /**
- * Default PermissionChecker — TEMPORARY, partial implementation.
+ * Grant-based PermissionChecker — constructs a real PermissionGrant from the
+ * user's permissions and allowedClientIds, then delegates to it.
  *
- * !!! KNOWN LIMITATION — CLIENT ALLOWLIST NOT CHECKED !!!
- * The Admin spec defines a TWO-DIMENSIONAL permission model:
- *   (1) a CLIENT ALLOWLIST — which specific Client accounts an Admin may act on;
- *   (2) a MODULE PERMISSION MATRIX — View / Edit / Approve / None per module,
- *       applying ONLY within that allowlist.
- *
- * This default checker implements ONLY dimension (2) — the module matrix — by
- * rank. It does NOT check dimension (1): whether the acting user is permitted to
- * act on the SPECIFIC client/target the route concerns. The current User type
- * (platform/types.ts) does not even model the allowlist yet.
- *
- * Consequence: until services/PermissionService.ts is built and injected via
- * setPermissionChecker(), RouteGuard.canActivate() may return true for an Admin
- * acting on a Client OUTSIDE their allowlist, as long as the module-level rank
- * passes. This is acceptable ONLY because the client-side guard is UX-only
- * (see the file-level warning) and every real authorisation is enforced
- * server-side by the backend behind ApiClient. It must NOT be mistaken for
- * complete authorisation.
- *
- * services/PermissionService.ts will replace this checker with the full
- * two-dimensional (allowlist AND module-matrix) implementation.
+ * This replaces Part 1's DefaultPermissionChecker, which checked only the
+ * module-matrix dimension and left the client-allowlist dimension unchecked.
  */
-class DefaultPermissionChecker implements PermissionChecker {
+class GrantBasedPermissionChecker implements PermissionChecker {
+  private buildGrant(user: User): PermissionGrant {
+    const modulePermissions = new Map<string, PermissionLevel>();
+    if (user.permissions) {
+      for (const [mod, level] of Object.entries(user.permissions)) {
+        modulePermissions.set(mod, level);
+      }
+    }
+    return new PermissionGrant(modulePermissions, user.allowedClientIds);
+  }
+
   public hasPermission(user: User, module: string, level: PermissionLevel): boolean {
-    const granted = user.permissions?.[module] ?? 'none';
-    const grantedRank = LEVEL_RANK[granted] ?? 0;
-    const requiredRank = LEVEL_RANK[level] ?? 0;
+    const grant = this.buildGrant(user);
+    const grantedLevel = grant.getModulePermission(module);
+    const grantedRank = PERMISSION_LEVEL_RANK[grantedLevel];
+    const requiredRank = PERMISSION_LEVEL_RANK[level];
     return grantedRank >= requiredRank;
+  }
+
+  public canAccessClient(user: User, clientId: string): boolean {
+    const grant = this.buildGrant(user);
+    return grant.canAccessClient(clientId);
   }
 }
 
 export class RouteGuard {
-  private static checker: PermissionChecker = new DefaultPermissionChecker();
+  private static checker: PermissionChecker = new GrantBasedPermissionChecker();
 
   /** Replaces the default permission checker. Called by PermissionService at boot. */
   public static setPermissionChecker(checker: PermissionChecker): void {
@@ -85,6 +83,7 @@ export class RouteGuard {
    * 1. If the route requires a role and the user is unauthenticated → deny.
    * 2. If authenticated but the user's role is not in requiredRole → deny.
    * 3. If requiredPermission is set and the user lacks that level → deny.
+   * 4. If targetClientId is set and the user cannot access that client → deny.
    */
   public static canActivate(route: Route): boolean {
     const auth = authStore.getState();
@@ -107,6 +106,11 @@ export class RouteGuard {
           route.requiredPermission.level,
         )
       ) {
+        return false;
+      }
+    }
+    if (route.targetClientId !== null && auth.currentUser) {
+      if (!RouteGuard.checker.canAccessClient(auth.currentUser, route.targetClientId)) {
         return false;
       }
     }

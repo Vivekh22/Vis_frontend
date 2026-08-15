@@ -20,6 +20,8 @@
 import { Route } from './Route';
 import { RouteGuard } from './RouteGuard';
 import { renderNotFound } from './NotFoundHandler';
+import { authStore } from '../state/AuthStore';
+import type { User } from '../types';
 
 const LINK_SELECTOR = 'a[data-router-link]';
 
@@ -101,8 +103,16 @@ export class Router {
       return;
     }
     this.unmountCurrent();
-    const element = new matchedRoute.component();
-    this.root.appendChild(element);
+    const pageElement = new matchedRoute.component();
+    if (matchedRoute.layoutComponent) {
+      const layout = new matchedRoute.layoutComponent() as HTMLElement & { user: User | null };
+      const auth = authStore.getState();
+      layout.user = auth.currentUser ?? null;
+      layout.appendChild(pageElement);
+      this.root.appendChild(layout);
+    } else {
+      this.root.appendChild(pageElement);
+    }
   }
 
   private unmountCurrent(): void {

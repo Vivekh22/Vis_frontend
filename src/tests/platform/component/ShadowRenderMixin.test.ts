@@ -16,20 +16,15 @@ describe('injectStyles', () => {
 });
 
 describe('injectGlobalTokens', () => {
-  it('injects a <style> containing the design tokens into the ShadowRoot', () => {
+  it('injects a <style> containing structural design tokens into the ShadowRoot', () => {
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'open' });
     injectGlobalTokens(shadow);
     const style = shadow.querySelector('style');
     expect(style).not.toBeNull();
-    expect(style?.textContent).toContain('--color-primary');
-  });
-
-  it('injects a <style> containing the theme variables into the ShadowRoot', () => {
-    const host = document.createElement('div');
-    const shadow = host.attachShadow({ mode: 'open' });
-    injectGlobalTokens(shadow);
-    const style = shadow.querySelector('style');
-    expect(style?.textContent).toContain('[data-theme="dark"]');
+    expect(style?.textContent).toContain('--space-4');
+    expect(style?.textContent).toContain('--font-size-sm');
+    expect(style?.textContent).toContain('--radius-md');
+    expect(style?.textContent).toContain('--shadow-sm');
   });
 });

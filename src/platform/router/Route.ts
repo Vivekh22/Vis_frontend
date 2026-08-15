@@ -25,17 +25,34 @@ export class Route {
   public readonly component: CustomElementConstructor;
   public readonly requiredRole: UserRole[] | null;
   public readonly requiredPermission: PermissionRequirement | null;
+  /**
+   * Optional: the client ID this route targets. When set, RouteGuard also
+   * checks the client-allowlist dimension (dimension 1 of the Admin
+   * two-dimensional permission model). Absent means the route is not
+   * client-specific (e.g. a dashboard listing all accessible clients).
+   */
+  public readonly targetClientId: string | null;
+  /**
+   * Optional: the layout component that wraps the page. When set, the Router
+   * creates the layout, sets the current user on it, and appends the page
+   * as a child (slotted into the layout's <slot>).
+   */
+  public readonly layoutComponent: CustomElementConstructor | null;
 
   constructor(params: {
     path: string;
     component: CustomElementConstructor;
     requiredRole: UserRole[] | null;
     requiredPermission: PermissionRequirement | null;
+    targetClientId?: string | null;
+    layoutComponent?: CustomElementConstructor | null;
   }) {
     this.path = params.path;
     this.component = params.component;
     this.requiredRole = params.requiredRole;
     this.requiredPermission = params.requiredPermission;
+    this.targetClientId = params.targetClientId ?? null;
+    this.layoutComponent = params.layoutComponent ?? null;
   }
 
   /**
