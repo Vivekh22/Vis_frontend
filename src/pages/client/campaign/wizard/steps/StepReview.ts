@@ -48,13 +48,30 @@ const STYLES = `
     cursor: pointer;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-bold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    transition: all 0.3s ease;
+    min-width: 180px;
   }
   .launch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .launch-btn.launching .launch-icon { display: none; }
+  .launch-btn.launched { background: var(--color-success); }
+  .launch-btn.launched .launch-text { display: none; }
+  .launch-btn.launched .check-icon { display: inline-block; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  .check-icon { display: none; font-size: 1.2em; }
+  @keyframes pop-in {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
   .launch-notice { font-size: var(--font-size-xs); color: var(--color-text-muted); }
 `;
 
 class StepReview extends BaseComponent implements StepComponent {
   private _data: CampaignFormData | null = null;
+  private isLaunching = false;
+  private isLaunched = false;
 
   constructor() {
     super();
@@ -80,13 +97,34 @@ class StepReview extends BaseComponent implements StepComponent {
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
     if (target.closest('[data-action="launch"]')) {
-      this.emit('launch-campaign', { data: this._data });
+      this.isLaunching = true;
+      this.rerender();
+      
+      // Simulate launch delay for animation
+      setTimeout(() => {
+        this.isLaunching = false;
+        this.isLaunched = true;
+        this.rerender();
+        
+        // Wait for checkmark animation to finish before navigating
+        setTimeout(() => {
+          this.emit('launch-campaign', { data: this._data });
+        }, 600);
+      }, 800);
+    } else if (target.closest('[data-edit-step]')) {
+      const stepIndex = Number(target.closest('[data-edit-step]')!.getAttribute('data-edit-step'));
+      this.emit('edit-step', { stepIndex }, { bubbles: true, composed: true });
     }
   };
 
   protected renderTemplate(): string {
     if (!this._data) return '';
     const d = this._data;
+    
+    let btnClass = 'launch-btn';
+    if (this.isLaunching) btnClass += ' launching';
+    if (this.isLaunched) btnClass += ' launched';
+    
     return html`
       <div class="review-content">
         <div class="summary-section">
@@ -132,7 +170,10 @@ class StepReview extends BaseComponent implements StepComponent {
           <div class="summary-row"><span class="summary-key">Rules:</span><span class="summary-val">${d.bidMultiplierRules.length} rule(s)</span></div>
         </div>
         <div>
-          <button class="launch-btn" data-action="launch" type="button">Launch Campaign</button>
+          <button class="${btnClass}" data-action="launch" type="button" ${this.isLaunching || this.isLaunched ? 'disabled' : ''}>
+            <span class="launch-text">${this.isLaunching ? 'Launching...' : 'Launch Campaign'}</span>
+            <span class="check-icon">✓ Launched!</span>
+          </button>
           <p class="launch-notice">Campaign will be submitted for approval (pending_approval). It does NOT go live immediately.</p>
         </div>
       </div>

@@ -10,6 +10,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { thirdPartyStatusService } from '../../../../services';
 import type { ThirdPartyServiceStatus } from '../../../../services/ThirdPartyStatusService';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

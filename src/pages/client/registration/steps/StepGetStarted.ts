@@ -14,6 +14,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { isNotEmpty, isValidEmail } from '../../../../utils/validators';
 import type { RegistrationFormData, StepComponent } from '../registration-types';
+import '../../../../components/form-fields/TextFieldElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

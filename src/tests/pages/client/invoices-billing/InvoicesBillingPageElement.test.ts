@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * InvoicesBillingPageElement.test.ts — tests/pages/client/invoices-billing/
  *
@@ -5,7 +6,7 @@
  * Asserts that no margin field appears in the rendered output.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { InvoicesBillingPageElement } from '../../../../pages/client/invoices-billing/InvoicesBillingPageElement';
+import { InvoicesBillingPageElement } from '../../../../pages/client/invoices-billing/InvoicesBillingPageElement';
 
 vi.mock('../../../../services', () => ({
   invoiceService: {

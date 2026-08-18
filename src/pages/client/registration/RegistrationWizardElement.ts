@@ -24,18 +24,12 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { authService } from '../../../services';
 import { navigate } from '../../../utils/navigate';
 import { INITIAL_REGISTRATION_DATA, type RegistrationFormData, type StepComponent } from './registration-types';
-import { StepGetStarted } from './steps/StepGetStarted';
-import { StepPersonalBusinessInfo } from './steps/StepPersonalBusinessInfo';
-import { StepCampaignPreferences } from './steps/StepCampaignPreferences';
-import { StepBankingCompanyDetails } from './steps/StepBankingCompanyDetails';
-import { StepAccountSecurity } from './steps/StepAccountSecurity';
-
-// Force-import to ensure step components are registered (not tree-shaken).
-void StepGetStarted;
-void StepPersonalBusinessInfo;
-void StepCampaignPreferences;
-void StepBankingCompanyDetails;
-void StepAccountSecurity;
+// Side-effect imports to ensure step components are registered (not tree-shaken).
+import './steps/StepGetStarted';
+import './steps/StepPersonalBusinessInfo';
+import './steps/StepCampaignPreferences';
+import './steps/StepBankingCompanyDetails';
+import './steps/StepAccountSecurity';
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); max-width: 800px; margin: 0 auto; padding: var(--space-6) var(--space-4); }
@@ -122,7 +116,10 @@ class RegistrationWizardElement extends BaseComponent {
   private handleStepValidityChanged = (event: Event): void => {
     const detail = (event as CustomEvent<{ isValid: boolean }>).detail;
     this.stepValidationState[this.currentStep] = detail.isValid;
-    this.rerender();
+    const nextBtn = this.shadow.querySelector<HTMLButtonElement>('[data-action="next"]');
+    if (nextBtn) {
+      nextBtn.disabled = !detail.isValid;
+    }
   };
 
   private goToNextStep(): void {

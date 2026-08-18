@@ -34,11 +34,7 @@ export class MockSupportRepository implements SupportRepository {
 
   async findAll(clientId: string, includeInternalNotes?: boolean): Promise<SupportTicket[]> {
     const results = this.tickets.filter((t) => t.clientId === clientId);
-    if (includeInternalNotes) {
-      for (const t of results) {
-        t.internalNotes = 'Admin note: prioritize this ticket based on client tier and campaign spend levels.';
-      }
-    }
+    // Removed internalNotes logic as the property no longer exists
     return results;
   }
 

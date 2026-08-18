@@ -10,6 +10,8 @@ import { injectStyles, injectGlobalTokens } from '../../platform/component/Shado
 import { html, SafeHtmlString } from '../../platform/rendering/SafeHtml';
 import { creativeLibraryService } from '../../services';
 import type { LibraryAsset } from '../../services/CreativeLibraryService';
+import '../loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

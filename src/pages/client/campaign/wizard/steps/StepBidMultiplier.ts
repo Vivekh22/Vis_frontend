@@ -138,33 +138,29 @@ class StepBidMultiplier extends BaseComponent implements StepComponent {
     return html`
       <div class="step-content">
         <button class="add-rule-btn" data-action="add-rule" type="button">+ Add Rule</button>
-        ${rules.length > 0 ? SafeHtmlString.trusted(this.renderRulesTable(rules)) : '<p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">No rules added yet. Multiplier defaults to 1.0.</p>'}
+        ${rules.length > 0 ? SafeHtmlString.trusted(this.renderRulesList(rules)) : '<p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">No rules added yet. Multiplier defaults to 1.0.</p>'}
       </div>
     `;
   }
 
-  private renderRulesTable(rules: BidMultiplierRule[]): string {
-    const header = html`
-      <tr>
-        <th>Condition</th>
-        <th>Value</th>
-        <th>Multiplier</th>
-        <th>Expiry</th>
-        <th></th>
-      </tr>
-    `;
+  private renderRulesList(rules: BidMultiplierRule[]): string {
     const body = rules.map((r) => html`
-      <tr>
-        <td><select class="rule-input" data-rule-id="${r.id}" data-field="condition">
+      <div class="rule-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: var(--space-2); display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+        <span>If</span>
+        <select class="rule-input" style="width: auto;" data-rule-id="${r.id}" data-field="condition">
           ${SafeHtmlString.trusted(CONDITIONS.map((c) => `<option value="${c}" ${r.condition === c ? 'selected' : ''}>${c}</option>`).join(''))}
-        </select></td>
-        <td><input type="text" class="rule-input" data-rule-id="${r.id}" data-field="conditionValue" value="${r.conditionValue}"></td>
-        <td><input type="number" class="rule-input" data-rule-id="${r.id}" data-field="multiplier" value="${r.multiplier}" step="0.1"></td>
-        <td><input type="date" class="rule-input" data-rule-id="${r.id}" data-field="expiry" value="${r.expiry}"></td>
-        <td><button class="remove-btn" data-action="remove-rule" data-rule-id="${r.id}" type="button">Remove</button></td>
-      </tr>
+        </select>
+        <span>is</span>
+        <input type="text" class="rule-input" style="width: 150px;" data-rule-id="${r.id}" data-field="conditionValue" value="${r.conditionValue}" placeholder="Value">
+        <span>, multiply bid by</span>
+        <input type="number" class="rule-input" style="width: 80px;" data-rule-id="${r.id}" data-field="multiplier" value="${r.multiplier}" step="0.1">
+        <span>until</span>
+        <input type="date" class="rule-input" style="width: 130px;" data-rule-id="${r.id}" data-field="expiry" value="${r.expiry}">
+        <div style="flex: 1;"></div>
+        <button class="remove-btn" data-action="remove-rule" data-rule-id="${r.id}" type="button">Remove</button>
+      </div>
     `).join('');
-    return `<table class="rules-table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
+    return `<div>${body}</div>`;
   }
 }
 

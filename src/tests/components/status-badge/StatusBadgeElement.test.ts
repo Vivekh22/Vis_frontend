@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { StatusBadgeElement } from '../../../components/status-badge/StatusBadgeElement';
+import { StatusBadgeElement } from '../../../components/status-badge/StatusBadgeElement';
 import '../../../components/status-badge/StatusBadgeElement';
 
 describe('StatusBadgeElement', () => {

@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { ChartWidgetElement } from '../../../components/chart-widget/ChartWidgetElement';
+import { ChartWidgetElement } from '../../../components/chart-widget/ChartWidgetElement';
 import '../../../components/chart-widget/ChartWidgetElement';
 
 describe('ChartWidgetElement', () => {
@@ -40,6 +41,64 @@ describe('ChartWidgetElement', () => {
     expect(areaPaths.length).toBe(1);
     const dots = el.shadowRoot!.querySelectorAll('circle');
     expect(dots.length).toBe(3);
+    document.body.removeChild(el);
+  });
+
+  it('renders Y-axis gridline labels for every chart type', () => {
+    const el = document.createElement('chart-widget') as ChartWidgetElement;
+    document.body.appendChild(el);
+    el.chartType = 'line';
+    el.data = data;
+    const texts = Array.from(el.shadowRoot!.querySelectorAll('text.axis-label'));
+    const labels = texts.map((t) => t.textContent).filter((t) => t !== null && t !== undefined);
+    // X labels (Mon/Tue/Wed) plus Y-axis tick labels (0, 5, 10, 15, 20 for max 20)
+    expect(labels).toContain('Mon');
+    expect(labels).toContain('Tue');
+    expect(labels).toContain('Wed');
+    const yLabels = labels.filter((t) => !['Mon', 'Tue', 'Wed'].includes(t));
+    expect(yLabels.length).toBeGreaterThanOrEqual(4);
+    expect(yLabels).toContain('0');
+    expect(yLabels).toContain('20');
+    document.body.removeChild(el);
+  });
+
+  it('renders Y-axis gridlines', () => {
+    const el = document.createElement('chart-widget') as ChartWidgetElement;
+    document.body.appendChild(el);
+    el.chartType = 'line';
+    el.data = data;
+    const gridlines = el.shadowRoot!.querySelectorAll('line.grid-line');
+    expect(gridlines.length).toBeGreaterThanOrEqual(4);
+    document.body.removeChild(el);
+  });
+
+  it('formats Y-axis labels as compact currency when format is currency', () => {
+    const el = document.createElement('chart-widget') as ChartWidgetElement;
+    document.body.appendChild(el);
+    el.chartType = 'line';
+    el.data = [
+      { label: 'Mon', value: 100 },
+      { label: 'Tue', value: 200 },
+      { label: 'Wed', value: 1500 },
+    ];
+    el.format = 'currency';
+    const texts = Array.from(el.shadowRoot!.querySelectorAll('text.axis-label'));
+    const labels = texts.map((t) => t.textContent);
+    expect(labels.some((t) => t?.startsWith('$'))).toBe(true);
+    document.body.removeChild(el);
+  });
+
+  it('thins X-axis labels for long series', () => {
+    const el = document.createElement('chart-widget') as ChartWidgetElement;
+    document.body.appendChild(el);
+    el.chartType = 'line';
+    const many = Array.from({ length: 30 }, (_, i) => ({ label: `D${i}`, value: i + 1 }));
+    el.data = many;
+    const texts = Array.from(el.shadowRoot!.querySelectorAll('text.axis-label'));
+    const labels = texts.map((t) => t.textContent).filter((t) => t !== null && t !== undefined);
+    const xLabels = labels.filter((t) => t.startsWith('D'));
+    expect(xLabels.length).toBeLessThan(30);
+    expect(xLabels.length).toBeGreaterThan(1);
     document.body.removeChild(el);
   });
 

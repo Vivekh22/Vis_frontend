@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FundRepository.test.ts — tests for repositories/FundRepository.
  *

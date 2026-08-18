@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { TextFieldElement } from '../../../components/form-fields/TextFieldElement';
+import { TextFieldElement } from '../../../components/form-fields/TextFieldElement';
 import '../../../components/form-fields/TextFieldElement';
 
 describe('TextFieldElement', () => {

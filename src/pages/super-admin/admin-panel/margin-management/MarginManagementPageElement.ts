@@ -20,6 +20,8 @@ import { MandatoryNoteDialogElement } from '../../../../components/mandatory-not
 import type { ClientSummary } from '../../../../core/types/ClientSummary';
 import type { ClientMargin } from '../../../../services/MarginService';
 import type { MarginHistoryEntry } from '../../../../core/entities/MarginHistoryEntry';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

@@ -29,11 +29,15 @@ import { TemplateEngine } from '../rendering/TemplateEngine';
 export abstract class BaseComponent extends HTMLElement {
   protected readonly shadow: ShadowRoot;
   protected readonly templateEngine: TemplateEngine;
+  private readonly renderContainer: HTMLElement;
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
-    this.templateEngine = new TemplateEngine(this.shadow, () => this.renderTemplate());
+    this.renderContainer = document.createElement('div');
+    this.renderContainer.style.display = 'contents';
+    this.shadow.appendChild(this.renderContainer);
+    this.templateEngine = new TemplateEngine(this.renderContainer, () => this.renderTemplate());
   }
 
   /** Each subclass defines its markup here via the `html` tagged template. */

@@ -6,13 +6,15 @@
  * component — the shared one is used with a scope parameter (the items
  * array is pre-filtered by the caller).
  */
-import { BaseComponent } from '../../../../platform/component/BaseComponent';
-import { ComponentRegistry } from '../../../../platform/component/ComponentRegistry';
-import { injectStyles, injectGlobalTokens } from '../../../../platform/component/ShadowRenderMixin';
-import { html } from '../../../../platform/rendering/SafeHtml';
-import { approvalService } from '../../../../services';
-import { authStore } from '../../../../platform/state/AuthStore';
-import type { ApprovalQueueItem } from '../../../../components/approval-queue/ApprovalQueueElement';
+import { BaseComponent } from '../../../platform/component/BaseComponent';
+import { ComponentRegistry } from '../../../platform/component/ComponentRegistry';
+import { injectStyles, injectGlobalTokens } from '../../../platform/component/ShadowRenderMixin';
+import { html } from '../../../platform/rendering/SafeHtml';
+import { approvalService } from '../../../services';
+import { authStore } from '../../../platform/state/AuthStore';
+import type { ApprovalQueueItem } from '../../../components/approval-queue/ApprovalQueueElement';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 interface ApprovalQueueHost extends HTMLElement {
   items: ApprovalQueueItem[];

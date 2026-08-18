@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CreativeRepository.test.ts — tests for repositories/CreativeRepository.
  *

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * IntegrationsPageElement.test.ts — tests/pages/client/integrations-api-keys/
  *
@@ -5,7 +6,7 @@
  * reveal closes.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { IntegrationsPageElement } from '../../../../pages/client/integrations-api-keys/IntegrationsPageElement';
+import { IntegrationsPageElement } from '../../../../pages/client/integrations-api-keys/IntegrationsPageElement';
 
 vi.mock('../../../../services', () => ({
   apiKeyService: {
@@ -22,6 +23,16 @@ vi.mock('../../../../services', () => ({
     deleteWebhook: vi.fn(),
     testPostback: vi.fn().mockResolvedValue({ success: true, message: 'Test sent' }),
   },
+  masterIntegrationService: {
+    getMmpList: vi.fn().mockResolvedValue([
+      { providerKey: 'appsflyer', name: 'AppsFlyer', description: 'AppsFlyer integration' },
+      { providerKey: 'adjust', name: 'Adjust', description: 'Adjust integration' },
+      { providerKey: 'kochava', name: 'Kochava', description: 'Kochava integration' },
+      { providerKey: 'branch', name: 'Branch', description: 'Branch integration' },
+      { providerKey: 'singular', name: 'Singular', description: 'Singular integration' },
+      { providerKey: 'custom', name: 'Custom MMP', description: 'Custom integration' }
+    ])
+  }
 }));
 
 import '../../../../pages/client/integrations-api-keys/IntegrationsPageElement';

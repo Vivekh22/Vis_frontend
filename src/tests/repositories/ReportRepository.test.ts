@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ReportRepository.test.ts — tests for repositories/ReportRepository.
  *

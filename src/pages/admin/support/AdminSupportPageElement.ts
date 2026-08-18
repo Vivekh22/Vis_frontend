@@ -12,13 +12,15 @@
  * remain null there. This is gated by role: only admin/super-admin code
  * paths pass includeInternalNotes: true.
  */
-import { BaseComponent } from '../../../../platform/component/BaseComponent';
-import { ComponentRegistry } from '../../../../platform/component/ComponentRegistry';
-import { injectStyles, injectGlobalTokens } from '../../../../platform/component/ShadowRenderMixin';
-import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
-import { supportService } from '../../../../services';
-import { authStore } from '../../../../platform/state/AuthStore';
-import type { SupportTicket } from '../../../../core/entities/SupportTicket';
+import { BaseComponent } from '../../../platform/component/BaseComponent';
+import { ComponentRegistry } from '../../../platform/component/ComponentRegistry';
+import { injectStyles, injectGlobalTokens } from '../../../platform/component/ShadowRenderMixin';
+import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
+import { supportService } from '../../../services';
+import { authStore } from '../../../platform/state/AuthStore';
+import type { SupportTicket } from '../../../core/entities/SupportTicket';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }
@@ -150,7 +152,7 @@ class AdminSupportPageElement extends BaseComponent {
     return html`
       <h1 class="page-title">Support — Admin View</h1>
       <div class="header-row">
-        <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);">Tickets from your assigned clients. Internal notes are visible to admin/super-admin only.</p>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);">Tickets from your assigned clients.</p>
       </div>
       <div class="ticket-list-container">
         <table>
@@ -170,9 +172,7 @@ class AdminSupportPageElement extends BaseComponent {
         <div class="message-body">${m.body}</div>
       </div>
     `).join('');
-    const internalNotes = t.internalNotes
-      ? `<div class="internal-notes"><div class="internal-notes-label">🔒 Internal Notes (Admin Only)</div>${t.internalNotes}</div>`
-      : '';
+    const internalNotes = '';
     return html`
       <button class="btn back-btn" data-action="back-to-list" type="button">← Back to Tickets</button>
       <h1 class="page-title">${t.subject}</h1>

@@ -10,13 +10,17 @@
  * of every client ID — because "all clients" must also cover clients
  * that don't exist yet.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 import { PermissionGrant } from '../core/value-objects/PermissionGrant';
 import type { PermissionLevel } from '../core/enums/PermissionLevel';
 
 export interface RoleManagementRepository {
   fetchPermissions(userId: string): Promise<{
     modulePermissions: ReadonlyMap<string, PermissionLevel>;
-    allowedClientIds: ReadonlySet<string>;
+    allowedClientIds: ReadonlySet<string> | null;
   }>;
   saveGrant(userId: string, modulePermissions: ReadonlyMap<string, PermissionLevel>, allowedClientIds: ReadonlySet<string> | null): Promise<void>;
 }
@@ -30,7 +34,7 @@ export class RoleManagementService {
    */
   async getGrant(userId: string): Promise<PermissionGrant> {
     const { modulePermissions, allowedClientIds } = await this.roleRepo.fetchPermissions(userId);
-    return new PermissionGrant(modulePermissions, allowedClientIds);
+    return new PermissionGrant(modulePermissions, allowedClientIds ?? undefined);
   }
 
   /**

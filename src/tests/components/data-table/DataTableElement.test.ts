@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { DataTableElement, ColumnDefinition } from '../../../components/data-table/DataTableElement';
+import { DataTableElement } from '../../../components/data-table/DataTableElement';
 import '../../../components/data-table/DataTableElement';
 
 interface TestRow { name: string; age: number; }

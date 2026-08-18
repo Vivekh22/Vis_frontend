@@ -12,6 +12,10 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { suggestionBusService } from '../../../../services';
 import type { SuggestionBusStats } from '../../../../services/SuggestionBusService';
+import '../../../../components/empty-state/EmptyStateElement';
+import '../../../../components/loading-state/LoadingStateElement';
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

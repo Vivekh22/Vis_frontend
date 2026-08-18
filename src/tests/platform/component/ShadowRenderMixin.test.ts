@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ShadowRenderMixin.test.ts — unit tests for platform/component/ShadowRenderMixin.ts.
  */

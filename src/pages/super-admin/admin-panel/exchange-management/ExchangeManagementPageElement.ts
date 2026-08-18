@@ -12,6 +12,8 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { exchangeService, clientService } from '../../../../services';
 import type { ExchangeConfig } from '../../../../core/entities/ExchangeConfig';
 import type { ClientSummary } from '../../../../core/types/ClientSummary';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

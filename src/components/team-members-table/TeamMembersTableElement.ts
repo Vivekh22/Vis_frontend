@@ -21,6 +21,8 @@ import { injectStyles, injectGlobalTokens } from '../../platform/component/Shado
 import { html, SafeHtmlString } from '../../platform/rendering/SafeHtml';
 import { teamService } from '../../services';
 import type { TeamMember } from '../../core/entities/TeamMember';
+import '../loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

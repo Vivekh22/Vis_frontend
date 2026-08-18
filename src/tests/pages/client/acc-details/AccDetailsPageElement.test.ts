@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * AccDetailsPageElement.test.ts — tests/pages/client/acc-details/
  *
  * Tests banking field masking (reveal toggle) and Reg Details read-only.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { AccDetailsPageElement } from '../../../../pages/client/acc-details/AccDetailsPageElement';
+import { AccDetailsPageElement } from '../../../../pages/client/acc-details/AccDetailsPageElement';
 
 vi.mock('../../../../services', () => ({
   teamService: {

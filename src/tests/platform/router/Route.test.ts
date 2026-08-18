@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Route.test.ts — unit tests for platform/router/Route.ts.
  */

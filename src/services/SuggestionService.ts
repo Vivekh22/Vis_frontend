@@ -28,6 +28,10 @@
  *     draft → pending_approval → running → paused → archived
  *   So an AI-accepted suggestion CANNOT land directly in 'running'.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 import { authStore } from '../platform/state/AuthStore';
 import { sessionStore } from '../platform/state/SessionStore';
 import { DomainError } from '../core/errors/DomainError';

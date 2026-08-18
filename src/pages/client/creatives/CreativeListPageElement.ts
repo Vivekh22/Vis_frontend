@@ -20,6 +20,10 @@ import { creativeService } from '../../../services';
 import type { Creative } from '../../../core/entities/Creative';
 import { CreativeStatus } from '../../../core/enums/CreativeStatus';
 import { navigate } from '../../../utils/navigate';
+import '../../../components/data-table/DataTableElement';
+import '../../../components/loading-state/LoadingStateElement';
+
+
 
 interface DataTableHost extends HTMLElement {
   columns: { key: string; label: string; sortable: boolean; render?: (row: Record<string, unknown>) => string }[];

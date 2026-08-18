@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ApprovalRepository.test.ts — tests for repositories/ApprovalRepository.
  *

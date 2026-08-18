@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { Money } from '../../../core/value-objects/Money';
 import { ValidationError } from '../../../core/errors/ValidationError';

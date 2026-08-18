@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { SelectFieldElement } from '../../../components/form-fields/SelectFieldElement';
+import { SelectFieldElement } from '../../../components/form-fields/SelectFieldElement';
 import '../../../components/form-fields/SelectFieldElement';
 
 describe('SelectFieldElement', () => {

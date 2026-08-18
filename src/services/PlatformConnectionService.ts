@@ -11,6 +11,10 @@
  *   will come from Taranga's own monitoring output — NOT something this
  *   frontend computes itself.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 export type ConnectionStatus = 'live' | 'degraded' | 'down';
 
 export interface ConnectedExchange {

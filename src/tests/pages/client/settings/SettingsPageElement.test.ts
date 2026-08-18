@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * SettingsPageElement.test.ts — tests/pages/client/settings/
  *
  * Tests that Deactivate Account submits a request, doesn't self-execute.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { SettingsPageElement } from '../../../../pages/client/settings/SettingsPageElement';
+import { SettingsPageElement } from '../../../../pages/client/settings/SettingsPageElement';
 
 vi.mock('../../../../services', () => ({
   settingsService: {

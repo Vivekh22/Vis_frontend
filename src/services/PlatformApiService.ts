@@ -6,6 +6,10 @@
  * users), different data model. This service does NOT share state with
  * the client IntegrationsPageElement's ApiKeyService.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 export interface PlatformApiKey {
   readonly id: string;
   readonly name: string;

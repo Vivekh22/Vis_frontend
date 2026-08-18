@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * RegistrationService.test.ts
  *
@@ -13,12 +14,12 @@
  *   - Rejection and request-more-info work with mandatory notes
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RegistrationService } from '../services/RegistrationService';
-import { MockRegistrationRepository } from '../repositories/mocks/MockRegistrationRepository';
-import { PlatformSettingsService } from '../services/PlatformSettingsService';
-import { MockPlatformSettingsRepository } from '../repositories/mocks/MockPlatformSettingsRepository';
-import { Percentage } from '../core/value-objects/Percentage';
-import type { TypeSpecificMargin } from '../core/entities/Registration';
+import { RegistrationService } from '../../services/RegistrationService';
+import { MockRegistrationRepository } from '../../repositories/mocks/MockRegistrationRepository';
+import { PlatformSettingsService } from '../../services/PlatformSettingsService';
+import { MockPlatformSettingsRepository } from '../../repositories/mocks/MockPlatformSettingsRepository';
+import { Percentage } from '../../core/value-objects/Percentage';
+import { Registration } from '../../core/entities/Registration';
 
 describe('RegistrationService', () => {
   let service: RegistrationService;

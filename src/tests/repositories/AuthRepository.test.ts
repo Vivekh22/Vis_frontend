@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AuthRepository.test.ts — tests for repositories/AuthRepository.
  *

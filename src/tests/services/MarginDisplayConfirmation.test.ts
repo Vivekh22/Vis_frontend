@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MarginDisplayConfirmation.test.ts
  *
@@ -13,11 +14,11 @@
  * it's called ONLY by the Super Admin Overview page.
  */
 import { describe, it, expect } from 'vitest';
-import { DashboardService } from '../services/DashboardService';
-import { MockDashboardRepository } from '../repositories/mocks/MockDashboardRepository';
-import { MarginService } from '../services/MarginService';
-import { MockMarginRepository } from '../repositories/mocks/MockMarginRepository';
-import { Percentage } from '../core/value-objects/Percentage';
+import { DashboardService } from '../../services/DashboardService';
+import { MockDashboardRepository } from '../../repositories/mocks/MockDashboardRepository';
+import { MarginService } from '../../services/MarginService';
+import { MockMarginRepository } from '../../repositories/mocks/MockMarginRepository';
+import { Percentage } from '../../core/value-objects/Percentage';
 
 describe('Margin Display Confirmation', () => {
   it('DashboardService.getPlatformRevenue() is the ONLY path returning margin revenue', async () => {

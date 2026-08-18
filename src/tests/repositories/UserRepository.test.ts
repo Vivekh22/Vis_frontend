@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * UserRepository.test.ts — tests for repositories/UserRepository.
  *

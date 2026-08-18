@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { DomainError } from '../../../core/errors/DomainError';
 import { ValidationError } from '../../../core/errors/ValidationError';

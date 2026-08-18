@@ -20,6 +20,7 @@ import { ComponentRegistry } from '../../platform/component/ComponentRegistry';
 import { injectStyles, injectGlobalTokens } from '../../platform/component/ShadowRenderMixin';
 import { html, SafeHtmlString } from '../../platform/rendering/SafeHtml';
 import { impersonationService } from '../../services';
+import { navigate } from '../../utils/navigate';
 import { PermissionDeniedError } from '../../core/errors/PermissionDeniedError';
 
 const STYLES = `
@@ -85,7 +86,9 @@ class ViewAsControlElement extends BaseComponent {
       this.isImpersonating = true;
       this.error = null;
       this.success = `Now viewing as ${this.clientId}`;
-      this.rerender();
+      // Navigate via the SPA router so the in-memory session survives — a full
+      // reload would wipe authStore + sessionStore and drop the impersonation.
+      navigate('/client/dashboard');
     } catch (err) {
       if (err instanceof PermissionDeniedError) {
         this.error = `You don't have access to client "${this.clientId}"`;

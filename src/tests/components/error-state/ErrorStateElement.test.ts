@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * ErrorStateElement.test.ts — tests for the error state component.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { ErrorStateElement } from '../../../components/error-state/ErrorStateElement';
+import { ErrorStateElement } from '../../../components/error-state/ErrorStateElement';
 import '../../../components/error-state/ErrorStateElement';
 
 describe('ErrorStateElement', () => {

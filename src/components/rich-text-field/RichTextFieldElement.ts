@@ -25,7 +25,7 @@ import { BaseComponent } from '../../platform/component/BaseComponent';
 import { ComponentRegistry } from '../../platform/component/ComponentRegistry';
 import { injectStyles, injectGlobalTokens } from '../../platform/component/ShadowRenderMixin';
 import { html } from '../../platform/rendering/SafeHtml';
-import { sanitizeRichText } from '../../platform/security/InputSanitizer';
+import { sanitizeRichText } from '../../security/InputSanitizer';
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

@@ -13,6 +13,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../../platform/compon
 import { html, SafeHtmlString } from '../../../../../platform/rendering/SafeHtml';
 import type { StepComponent } from '../campaign-wizard-types';
 import type { CampaignFormData } from '../campaign-wizard-types';
+import '../../../../../components/ai-suggestion/AiSuggestionPopupElement';
+
 
 const PLATFORMS = ['App', 'Web', 'Desktop', 'CTV'];
 const CREATIVE_TYPES = ['Banner', 'Video', 'Native', 'Interstitial'];

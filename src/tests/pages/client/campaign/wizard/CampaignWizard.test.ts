@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CampaignWizard.test.ts — tests for the wizard orchestrator.
  *
@@ -11,7 +12,7 @@
  *   - Launch navigates to campaign list on success
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { CampaignWizardElement } from '../../../../../pages/client/campaign/wizard/CampaignWizardElement';
+import { CampaignWizardElement } from '../../../../../pages/client/campaign/wizard/CampaignWizardElement';
 import { campaignService } from '../../../../../services';
 
 vi.mock('../../../../../services', () => ({

@@ -24,6 +24,8 @@ import { registrationService } from '../../../../services';
 import { Percentage } from '../../../../core/value-objects/Percentage';
 import type { Registration } from '../../../../core/entities/Registration';
 import type { TypeSpecificMargin } from '../../../../core/entities/Registration';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

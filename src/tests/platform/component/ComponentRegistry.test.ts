@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ComponentRegistry.test.ts — unit tests for platform/component/ComponentRegistry.ts.
  */

@@ -18,10 +18,17 @@ import { fundService, suggestionService } from '../../../services';
 import type { FundTransaction } from '../../../core/entities/FundTransaction';
 import { Money } from '../../../core/value-objects/Money';
 import { PaymentMethod } from '../../../core/enums/PaymentMethod';
+import '../../../components/ai-suggestion/AiSuggestionPopupElement';
+import '../../../components/chart-widget/ChartWidgetElement';
+import '../../../components/loading-state/LoadingStateElement';
+
+
+
 
 interface ChartWidgetHost extends HTMLElement {
   data: { label: string; value: number }[];
   chartType: 'bar' | 'line' | 'area';
+  format: 'number' | 'currency';
   isLoading: boolean;
 }
 
@@ -246,6 +253,7 @@ class FundPageElement extends BaseComponent {
         { label: 'Spent', value: this.monthlySpend.getAmountMinorUnits() },
       ];
       chart.chartType = 'bar';
+      chart.format = 'currency';
       chart.isLoading = false;
     }
   }

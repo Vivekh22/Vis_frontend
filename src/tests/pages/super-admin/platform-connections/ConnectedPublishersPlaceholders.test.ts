@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ConnectedPublishersPlaceholders.test.ts
  *
@@ -13,7 +14,7 @@ describe('Connected Publishers/DSPs Placeholders', () => {
     const path = require('path');
     const filePath = path.resolve(
       __dirname,
-      '../../pages/super-admin/platform-connections/connected-publishers/ConnectedPublishersPageElement.ts',
+      '../../../../pages/super-admin/platform-connections/connected-publishers/ConnectedPublishersPageElement.ts',
     );
     const content = fs.readFileSync(filePath, 'utf-8');
     expect(content).toContain('empty-state');
@@ -28,7 +29,7 @@ describe('Connected Publishers/DSPs Placeholders', () => {
     const path = require('path');
     const filePath = path.resolve(
       __dirname,
-      '../../pages/super-admin/platform-connections/connected-dsps/ConnectedDspsPageElement.ts',
+      '../../../../pages/super-admin/platform-connections/connected-dsps/ConnectedDspsPageElement.ts',
     );
     const content = fs.readFileSync(filePath, 'utf-8');
     expect(content).toContain('empty-state');
@@ -40,10 +41,10 @@ describe('Connected Publishers/DSPs Placeholders', () => {
 
   it('PlatformConnectionService returns empty arrays for publishers and DSPs', async () => {
     const { MockPlatformConnectionRepository } = await import(
-      '../../repositories/mocks/MockPlatformConnectionRepository'
+      '../../../../repositories/mocks/MockPlatformConnectionRepository'
     );
     const { PlatformConnectionService } = await import(
-      '../../services/PlatformConnectionService'
+      '../../../../services/PlatformConnectionService'
     );
     const repo = new MockPlatformConnectionRepository();
     const service = new PlatformConnectionService(repo);

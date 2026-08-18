@@ -91,6 +91,7 @@ const STYLES = `
 class KpiMetricPickerElement extends BaseComponent {
   private _availableMetrics: string[] = DEFAULT_METRICS;
   private _selectedMetrics: string[] = [];
+  private _deltas: Record<string, { value: number; direction: 'up' | 'down' | 'flat' }> = {};
   private isChecklistOpen = false;
 
   constructor() {
@@ -111,6 +112,11 @@ class KpiMetricPickerElement extends BaseComponent {
 
   public get selectedMetrics(): string[] {
     return this._selectedMetrics;
+  }
+
+  public set deltas(value: Record<string, { value: number; direction: 'up' | 'down' | 'flat' }>) {
+    this._deltas = value;
+    this.rerender();
   }
 
   protected onMount(): void {
@@ -158,9 +164,17 @@ class KpiMetricPickerElement extends BaseComponent {
 
   protected renderTemplate(): string {
     const chips = this._selectedMetrics.map((metric) => {
+      const delta = this._deltas[metric];
+      let deltaHtml = '';
+      if (delta) {
+        const arrow = delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '–';
+        const colorClass = delta.direction === 'up' ? 'color: var(--color-success);' : delta.direction === 'down' ? 'color: var(--color-danger);' : 'color: var(--color-text-muted);';
+        deltaHtml = `<span style="font-size: var(--font-size-2xs); ${colorClass} margin-left: var(--space-1);">${arrow} ${Math.abs(delta.value)}%</span>`;
+      }
       return html`
         <span class="chip">
           ${metric}
+          ${SafeHtmlString.trusted(deltaHtml)}
           <button class="chip-remove" data-action="remove-chip" data-metric="${metric}" type="button">×</button>
         </span>
       `;

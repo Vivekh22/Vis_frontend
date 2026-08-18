@@ -13,6 +13,10 @@ import { injectStyles, injectGlobalTokens } from '../../../platform/component/Sh
 import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { appListService } from '../../../services';
 import type { AppListEntry } from '../../../core/entities/AppListEntry';
+import '../../../components/loading-state/LoadingStateElement';
+import '../../../components/tag-input/TagInputElement';
+
+
 
 interface TagInputHost extends HTMLElement {
   tags: string[];

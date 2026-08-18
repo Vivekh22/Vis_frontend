@@ -16,6 +16,8 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { featureFlagService, clientService } from '../../../../services';
 import { FeatureFlag, ALL_FEATURE_FLAGS } from '../../../../core/enums/FeatureFlag';
 import type { ClientSummary } from '../../../../core/types/ClientSummary';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

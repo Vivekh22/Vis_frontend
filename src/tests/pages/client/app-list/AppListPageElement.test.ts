@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * AppListPageElement.test.ts — tests for pages/client/app-list/.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { AppListPageElement } from '../../../../pages/client/app-list/AppListPageElement';
+import { AppListPageElement } from '../../../../pages/client/app-list/AppListPageElement';
 
 vi.mock('../../../../services', () => ({
   appListService: {

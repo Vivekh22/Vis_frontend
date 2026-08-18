@@ -29,6 +29,11 @@ import { dashboardService, approvalService, registrationService, clientService }
 import type { ColumnDefinition } from '../../../components/data-table/DataTableElement';
 import type { AdminWorkloadEntry } from '../../../services/DashboardService';
 import type { ClientSummary } from '../../../core/types/ClientSummary';
+import { DateRange } from '../../../core/value-objects/DateRange';
+import '../../../components/loading-state/LoadingStateElement';
+import '../../../components/period-selector/PeriodSelectorElement';
+import '../../../components/chart-widget/ChartWidgetElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }
@@ -43,6 +48,13 @@ const STYLES = `
   .kpi-sub { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: var(--space-1) 0 0; }
   .kpi-sub.up { color: var(--color-success); }
   .kpi-sub.down { color: var(--color-danger); }
+  .revenue-card { grid-column: span 3; display: flex; flex-direction: column; gap: var(--space-4); }
+  .revenue-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .revenue-chart-container { height: 200px; width: 100%; margin-top: var(--space-4); }
+  @media (min-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .revenue-card { grid-column: span 2; }
+  }
   .insight-line { background: var(--color-surface); border: 1px solid var(--color-border); border-left: 3px solid var(--color-primary); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-6); font-size: var(--font-size-sm); color: var(--color-text-primary); }
   .panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
   .ops-strip { display: flex; gap: var(--space-4); flex-wrap: wrap; }
@@ -86,6 +98,8 @@ class OverviewPageElement extends BaseComponent {
   private pendingApprovals = 0;
   private overdueApprovals = 0;
   private isLoading = true;
+  private currentPeriod = '30d';
+  private currentRange: DateRange = DateRange.fromPeriodOption('30d');
 
   constructor() {
     super();
@@ -94,7 +108,29 @@ class OverviewPageElement extends BaseComponent {
   }
 
   protected onMount(): void {
+    this.shadow.addEventListener('period-changed', this.handlePeriodChanged);
     void this.loadData();
+  }
+
+  protected onUnmount(): void {
+    this.shadow.removeEventListener('period-changed', this.handlePeriodChanged);
+  }
+
+  private handlePeriodChanged = (event: Event): void => {
+    const detail = (event as CustomEvent<DateRange>).detail;
+    if (detail && detail instanceof DateRange) {
+      this.currentRange = detail;
+      this.currentPeriod = this.periodKeyFromRange(detail);
+      void this.loadData();
+    }
+  };
+
+  private periodKeyFromRange(range: DateRange): string {
+    const dayDiff = Math.max(1, Math.round((range.end.getTime() - range.start.getTime()) / 86400000));
+    if (dayDiff <= 1) return 'today';
+    if (dayDiff <= 7) return '7d';
+    if (dayDiff <= 31) return '30d';
+    return 'custom';
   }
 
   private async loadData(): Promise<void> {
@@ -148,6 +184,43 @@ class OverviewPageElement extends BaseComponent {
     this.syncChildComponents();
   }
 
+  private getTrendData(): { label: string; value: number }[] {
+    // Generate mock trend data based on current revenue, with labels
+    // derived from the selected range's granularity (hourly for ≤1D,
+    // day-of-week for ≤7D, MM/DD for longer ranges).
+    const dayDiff = Math.max(1, Math.round((this.currentRange.end.getTime() - this.currentRange.start.getTime()) / 86400000));
+    const points = dayDiff <= 1 ? 24 : (dayDiff <= 7 ? 7 : 30);
+    const baseValue = (this.revenue?.revenue ?? 10000) / points;
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const trend = [];
+    for (let i = 0; i < points; i++) {
+      const label = this.formatTrendLabel(i, points, dayDiff, days);
+      trend.push({
+        label,
+        value: baseValue * (0.8 + Math.random() * 0.4) // +/- 20% variance
+      });
+    }
+    return trend;
+  }
+
+  private formatTrendLabel(index: number, points: number, dayDiff: number, days: string[]): string {
+    const d = new Date(this.currentRange.end);
+    if (dayDiff <= 1) {
+      // Hourly granularity (e.g. "12 AM", "1 PM")
+      const stepHours = 24 / points;
+      const hours = Math.floor(index * stepHours);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const h = hours % 12 || 12;
+      return `${h} ${ampm}`;
+    }
+    if (dayDiff <= 7) {
+      d.setDate(d.getDate() - (points - 1 - index));
+      return days[d.getDay()] as string;
+    }
+    d.setDate(d.getDate() - (points - 1 - index));
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  }
+
   private syncChildComponents(): void {
     const leaderboardTable = this.shadow.querySelector<DataTableHost>('data-table[data-id="leaderboard"]');
     if (leaderboardTable && this.clients.length > 0) {
@@ -175,6 +248,13 @@ class OverviewPageElement extends BaseComponent {
       workloadTable.totalItems = this.workloadData.length;
       workloadTable.pageSize = 10;
     }
+
+    const chart = this.shadow.querySelector<HTMLElement & { data: any, chartType: string, format: string }>('chart-widget');
+    if (chart) {
+      chart.chartType = 'line';
+      chart.format = 'currency';
+      chart.data = this.getTrendData();
+    }
   }
 
   private generateInsight(): string {
@@ -196,12 +276,20 @@ class OverviewPageElement extends BaseComponent {
       <h1 class="page-title">Platform Overview</h1>
       <div class="insight-line">${this.generateInsight()}</div>
       <div class="kpi-grid">
-        <div class="kpi-card">
-          <p class="kpi-label">Platform Revenue (MTD)</p>
-          <p class="kpi-value">$${(this.revenue?.revenue ?? 0).toLocaleString()}</p>
-          <p class="kpi-sub ${this.revenue && this.revenue.growth > 0 ? 'up' : 'down'}">
-            ${this.revenue ? (this.revenue.growth > 0 ? '+' : '') + this.revenue.growth + '% vs last month' : '—'}
-          </p>
+        <div class="kpi-card revenue-card">
+          <div class="revenue-header">
+            <div>
+              <p class="kpi-label">Platform Revenue (Margin)</p>
+              <p class="kpi-value">$${(this.revenue?.revenue ?? 0).toLocaleString()}</p>
+              <p class="kpi-sub ${this.revenue && this.revenue.growth > 0 ? 'up' : 'down'}">
+                ${this.revenue ? (this.revenue.growth > 0 ? '+' : '') + this.revenue.growth + '% vs last period' : '—'}
+              </p>
+            </div>
+            <period-selector selected-period="${this.currentPeriod}"></period-selector>
+          </div>
+          <div class="revenue-chart-container">
+            <chart-widget></chart-widget>
+          </div>
         </div>
         <div class="kpi-card">
           <p class="kpi-label">Total Managed Ad Spend</p>

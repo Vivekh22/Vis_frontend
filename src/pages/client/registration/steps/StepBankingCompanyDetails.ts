@@ -24,6 +24,8 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { isNotEmpty } from '../../../../utils/validators';
 import { COUNTRY_LIST } from '../../../../utils/countryList';
 import type { RegistrationFormData, StepComponent } from '../registration-types';
+import '../../../../components/form-fields/SelectFieldElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

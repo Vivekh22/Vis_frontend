@@ -20,6 +20,8 @@ import type { BulkUpdateResult } from '../../../services/CampaignService';
 import { CampaignStatus } from '../../../core/enums/CampaignStatus';
 import type { Campaign } from '../../../core/entities/Campaign';
 import { navigate } from '../../../utils/navigate';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 interface DataTableHost extends HTMLElement {
   columns: { key: string; label: string; sortable: boolean; render?: (row: Record<string, unknown>) => string }[];
@@ -112,10 +114,13 @@ const STYLES = `
   }
   .bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .table-container {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--color-glass-surface);
+    border: 1px solid var(--color-glass-border);
     border-radius: var(--radius-md);
     padding: var(--space-4);
+    box-shadow: var(--shadow-glass);
+    backdrop-filter: var(--blur-surface);
+    -webkit-backdrop-filter: var(--blur-surface);
   }
   .checkbox-col { width: 32px; text-align: center; }
   .action-btn {
@@ -136,6 +141,45 @@ const STYLES = `
     font-size: var(--font-size-xs);
     color: #92400e;
     margin-bottom: var(--space-3);
+  }
+  
+  .status-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+  }
+  .status-dot.running {
+    background: var(--color-success);
+    animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot.running {
+      animation: none;
+    }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .sparkline-svg {
+    width: 60px;
+    height: 20px;
+    display: block;
+    overflow: visible;
+  }
+  .sparkline-path {
+    fill: none;
+    stroke: var(--color-primary);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 `;
 
@@ -177,11 +221,38 @@ class CampaignListPageElement extends BaseComponent {
     injectStyles(this.shadow, STYLES);
   }
 
+  private handleSearchChanged = (event: Event): void => {
+    const detail = (event as CustomEvent<{ value: string }>).detail;
+    this.searchTerm = detail.value;
+    this.applyFilter();
+    this.syncTable();
+  };
+
+  private handleAddClicked = (): void => {
+    navigate('/client/campaigns/new');
+  };
+
+  private handleRowAction = (event: Event): void => {
+    const detail = (event as CustomEvent<{ actionId: string; row: Record<string, unknown> }>).detail;
+    const campaignId = String(detail.row['id']);
+    
+    if (detail.actionId === 'duplicate') {
+      void this.handleDuplicate(campaignId);
+    } else if (detail.actionId === 'approve') {
+      void campaignService.bulkUpdateStatus([campaignId], 'resume').then(() => this.loadCampaigns());
+    } else if (detail.actionId === 'reject') {
+      void campaignService.bulkUpdateStatus([campaignId], 'pause').then(() => this.loadCampaigns());
+    }
+  };
+
   protected onMount(): void {
     this.crossClientMode = this.hasAttribute('cross-client-mode');
     this.shadow.addEventListener('click', this.handleClick);
     this.shadow.addEventListener('change', this.handleChange);
     this.shadow.addEventListener('input', this.handleInput);
+    this.shadow.addEventListener('search-changed', this.handleSearchChanged);
+    this.shadow.addEventListener('add-clicked', this.handleAddClicked);
+    this.shadow.addEventListener('row-action', this.handleRowAction);
     void this.loadCampaigns();
   }
 
@@ -189,6 +260,9 @@ class CampaignListPageElement extends BaseComponent {
     this.shadow.removeEventListener('click', this.handleClick);
     this.shadow.removeEventListener('change', this.handleChange);
     this.shadow.removeEventListener('input', this.handleInput);
+    this.shadow.removeEventListener('search-changed', this.handleSearchChanged);
+    this.shadow.removeEventListener('add-clicked', this.handleAddClicked);
+    this.shadow.removeEventListener('row-action', this.handleRowAction);
   }
 
   private async loadCampaigns(): Promise<void> {
@@ -235,21 +309,6 @@ class CampaignListPageElement extends BaseComponent {
       return;
     }
 
-    const createBtn = target.closest('[data-action="create"]');
-    if (createBtn) {
-      navigate('/client/campaigns/new');
-      return;
-    }
-
-    const dupBtn = target.closest('[data-action="duplicate"]');
-    if (dupBtn) {
-      const id = dupBtn.getAttribute('data-campaign-id');
-      if (id) {
-        void this.handleDuplicate(id);
-      }
-      return;
-    }
-
     const bulkBtn = target.closest('[data-bulk-action]');
     if (bulkBtn) {
       const action = bulkBtn.getAttribute('data-bulk-action');
@@ -269,6 +328,8 @@ class CampaignListPageElement extends BaseComponent {
         if (checked) this.selectedIds.add(id);
         else this.selectedIds.delete(id);
       }
+      this.rerender(); // Rerender to show/hide bulk actions in the filter slot
+      this.syncTable(); // Re-sync table state
     }
   };
 
@@ -280,12 +341,6 @@ class CampaignListPageElement extends BaseComponent {
       this.rerender();
       this.syncTable();
       return;
-    }
-    if (target.getAttribute('data-field') === 'search') {
-      this.searchTerm = (target as HTMLInputElement).value;
-      this.applyFilter();
-      this.rerender();
-      this.syncTable();
     }
   };
 
@@ -303,9 +358,22 @@ class CampaignListPageElement extends BaseComponent {
 
   private buildTableRows(): Record<string, unknown>[] {
     return this.filteredCampaigns.map((c, idx) => {
+      // Generate some dummy trend data for the sparkline (7 data points)
+      const trend = [
+        100 + Math.random() * 50,
+        110 + Math.random() * 50,
+        105 + Math.random() * 50,
+        120 + Math.random() * 50,
+        115 + Math.random() * 50,
+        130 + Math.random() * 50,
+        125 + Math.random() * 50,
+      ];
+      
       const base: Record<string, unknown> = {
         id: c.id,
         name: c.name,
+        status: c.status,
+        trend,
         optionName: '—',
         targetBid: '$1.50',
         dayBudget: '$100',
@@ -326,19 +394,67 @@ class CampaignListPageElement extends BaseComponent {
     });
   }
 
+  private generateSparkline(data: number[]): string {
+    if (!data || data.length === 0) return '';
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+    const width = 60;
+    const height = 20;
+    
+    const stepX = width / (data.length - 1);
+    const points = data.map((val, i) => {
+      const x = i * stepX;
+      const y = height - ((val - min) / range) * height;
+      return `${i === 0 ? 'M' : 'L'}${x},${y}`;
+    }).join(' ');
+    
+    return `<svg class="sparkline-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><path class="sparkline-path" d="${points}"></path></svg>`;
+  }
+
   private syncTable(): void {
-    const table = this.shadow.querySelector<DataTableHost>('data-table');
+    const table = this.shadow.querySelector<any>('data-table');
     if (!table) return;
+    
+    // Configure Table UI Properties
+    table.showAddButton = true;
+    table.addActionText = 'Create Campaign';
+    table.searchPlaceholder = 'Search by name or ID...';
+    
+    // Configure Row Actions
+    const actions = [
+      { id: 'duplicate', label: 'Duplicate', icon: 'duplicate' }
+    ];
+    if (this.crossClientMode && this.activeTab === 'pending') {
+      actions.push({ id: 'approve', label: 'Approve', icon: 'approve' });
+      actions.push({ id: 'reject', label: 'Reject', icon: 'reject' });
+    }
+    table.rowActions = actions;
+
     const rows = this.buildTableRows();
     const cols = COLUMNS.map((c) => ({
       key: c.key,
       label: c.label,
       sortable: true,
       render: (row: Record<string, unknown>) => {
+        if (c.key === 'name') {
+          const status = row['status'] as string;
+          const isRunning = status === CampaignStatus.Running;
+          return `<div class="status-cell"><div class="status-dot ${isRunning ? 'running' : ''}" title="${status}"></div><span>${row[c.key]}</span></div>`;
+        }
         const val = row[c.key];
         return String(val ?? '');
       },
     }));
+    
+    // Add Trend (Sparkline) column after Name
+    cols.splice(2, 0, {
+      key: 'trend',
+      label: '7D Trend',
+      sortable: false,
+      render: (row: Record<string, unknown>) => this.generateSparkline(row['trend'] as number[]),
+    });
+    
     // Add Client column as first column in cross-client mode
     if (this.crossClientMode) {
       cols.unshift({ key: 'client', label: 'Client', sortable: true, render: (row: Record<string, unknown>) => String(row['client'] ?? '') });
@@ -348,26 +464,18 @@ class CampaignListPageElement extends BaseComponent {
       key: '_select',
       label: '',
       sortable: false,
-      render: (row) => {
+      render: (row: Record<string, unknown>) => {
         const id = String(row['id'] ?? '');
         const checked = this.selectedIds.has(id) ? 'checked' : '';
         return `<input type="checkbox" data-row-checkbox data-campaign-id="${id}" ${checked} />`;
       },
     });
-    // Add actions column as last
-    cols.push({
-      key: '_actions',
-      label: 'Actions',
-      sortable: false,
-      render: (row) => {
-        const id = String(row['id'] ?? '');
-        return `<button class="action-btn" data-action="duplicate" data-campaign-id="${id}">Duplicate</button>`;
-      },
-    });
+
     table.columns = cols;
     table.rows = rows;
     table.totalItems = rows.length;
-    table.pageSize = 0;
+    // Set page size for pagination to work
+    table.pageSize = 10;
   }
 
   protected renderTemplate(): string {
@@ -381,7 +489,6 @@ class CampaignListPageElement extends BaseComponent {
     return html`
       <div class="page-header">
         <h1 class="page-title">Campaigns</h1>
-        <button class="create-btn" data-action="create" type="button">+ Create Campaign</button>
       </div>
       <div class="tabs">
         <button class="tab ${this.activeTab === 'running' ? 'active' : ''}" data-tab="running" type="button">
@@ -391,13 +498,15 @@ class CampaignListPageElement extends BaseComponent {
           Pending Approval <span class="tab-badge">${pendingCount}</span>
         </button>
       </div>
-      <input type="text" class="search-input" data-field="search" placeholder="Search by name or ID..." value="${this.searchTerm}">
-      ${this.crossClientMode ? SafeHtmlString.trusted(this.renderClientFilter()) : ''}
-      ${this.selectedIds.size > 0 ? SafeHtmlString.trusted(this.renderBulkActions()) : ''}
+      
       ${this.bulkResult && this.bulkResult.failed.length > 0 ? SafeHtmlString.trusted(this.renderPartialFailNotice()) : ''}
-      <div class="table-container">
-        <data-table></data-table>
-      </div>
+      
+      <data-table>
+        <div slot="filters" style="display: flex; gap: var(--space-2); align-items: center;">
+          ${this.crossClientMode ? SafeHtmlString.trusted(this.renderClientFilter()) : ''}
+          ${this.selectedIds.size > 0 ? SafeHtmlString.trusted(this.renderBulkActions()) : ''}
+        </div>
+      </data-table>
     `;
   }
 

@@ -12,6 +12,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { geoEdgeService } from '../../../../services';
 import type { EdgeNode } from '../../../../services/GeoEdgeService';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

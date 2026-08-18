@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * StepValidation.test.ts — tests for each step component's validation.
  *

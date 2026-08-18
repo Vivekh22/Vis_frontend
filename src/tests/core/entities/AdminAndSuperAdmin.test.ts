@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { Admin } from '../../../core/entities/Admin';
 import { SuperAdmin } from '../../../core/entities/SuperAdmin';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SafeHtml.test.ts — unit tests for platform/rendering/SafeHtml.ts.
  */

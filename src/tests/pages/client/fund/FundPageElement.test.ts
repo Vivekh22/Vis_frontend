@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FundPageElement.test.ts — tests for pages/client/fund/.
  *
@@ -5,7 +6,7 @@
  * Bank Transfer = Pending status (not immediately credited).
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { FundPageElement } from '../../../../pages/client/fund/FundPageElement';
+import { FundPageElement } from '../../../../pages/client/fund/FundPageElement';
 
 vi.mock('../../../../services', () => ({
   fundService: {

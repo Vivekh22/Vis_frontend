@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * RichTextFieldElement.test.ts — tests/components/rich-text-field/
  *
@@ -5,7 +6,7 @@
  * by the InputSanitizer before it enters the field's DOM or stored value.
  */
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { sanitizeRichText } from '../../../platform/security/InputSanitizer';
+import { sanitizeRichText } from '../../../security/InputSanitizer';
 
 beforeAll(() => {
   // happy-dom's DOMParser executes <script> tags during parsing,

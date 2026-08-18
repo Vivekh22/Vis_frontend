@@ -11,6 +11,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { masterIntegrationService } from '../../../../services';
 import type { MasterMmpEntry } from '../../../../services/MasterIntegrationService';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

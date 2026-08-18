@@ -5,6 +5,10 @@
  * security incident log. Distinct from any single client's fraud flag
  * (Admin Accounts page, Part 11) — this is the aggregate view.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 export interface FraudSecurityIncident {
   readonly id: string;
   readonly type: string;

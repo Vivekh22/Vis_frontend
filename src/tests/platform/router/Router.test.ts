@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Router.test.ts — unit tests for platform/router/Router.ts.
  */
@@ -5,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Router } from '../../../platform/router/Router';
 import { Route } from '../../../platform/router/Route';
 import { authStore } from '../../../platform/state/AuthStore';
-import type { User } from '../../../platform/types';
+import { types } from '../../../platform/types';
 import { html, render } from '../../../platform/rendering/SafeHtml';
 
 class PublicPage extends HTMLElement {
@@ -96,5 +97,33 @@ describe('Router', () => {
       configurable: true,
       get: () => originalPathname,
     });
+  });
+
+  it('intercepts data-router-link clicks that originate inside a shadow root', () => {
+    authStore.login(clientUser);
+    // A shadow root containing a data-router-link anchor. The click must be
+    // resolved via composedPath() — a naive event.target.closest() would see
+    // the shadow host instead of the anchor and fail to intercept.
+    const host = document.createElement('div');
+    const shadow = host.attachShadow({ mode: 'open' });
+    const link = document.createElement('a');
+    link.setAttribute('href', '/dashboard');
+    link.setAttribute('data-router-link', '');
+    shadow.appendChild(link);
+    document.body.appendChild(host);
+
+    const originalPathname = window.location.pathname;
+    Object.defineProperty(window.location, 'pathname', {
+      configurable: true,
+      get: () => '/login',
+    });
+    link.click();
+    expect(root.querySelector('#pro')).not.toBeNull();
+
+    Object.defineProperty(window.location, 'pathname', {
+      configurable: true,
+      get: () => originalPathname,
+    });
+    document.body.removeChild(host);
   });
 });

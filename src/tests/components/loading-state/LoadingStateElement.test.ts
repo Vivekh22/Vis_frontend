@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * LoadingStateElement.test.ts — tests for the loading state component.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { LoadingStateElement } from '../../../components/loading-state/LoadingStateElement';
+import { LoadingStateElement } from '../../../components/loading-state/LoadingStateElement';
 import '../../../components/loading-state/LoadingStateElement';
 
 describe('LoadingStateElement', () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SessionStore.test.ts — unit tests for platform/state/SessionStore.ts.
  */

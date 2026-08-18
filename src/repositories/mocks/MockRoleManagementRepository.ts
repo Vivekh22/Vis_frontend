@@ -46,17 +46,15 @@ export class MockRoleManagementRepository implements RoleManagementRepository {
 
   async fetchPermissions(userId: string): Promise<{
     modulePermissions: ReadonlyMap<string, PermissionLevel>;
-    allowedClientIds: ReadonlySet<string>;
+    allowedClientIds: ReadonlySet<string> | null;
   }> {
     const stored = this.grants.get(userId);
     if (!stored) {
       return { modulePermissions: new Map(), allowedClientIds: new Set() };
     }
-    // If allowedClientIds is null (all-clients sentinel), return an
-    // empty set — PermissionGrant treats undefined/null as ALL_CLIENTS.
     return {
       modulePermissions: stored.modulePermissions,
-      allowedClientIds: stored.allowedClientIds ?? new Set(),
+      allowedClientIds: stored.allowedClientIds,
     };
   }
 

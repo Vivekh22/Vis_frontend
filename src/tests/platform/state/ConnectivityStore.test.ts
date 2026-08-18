@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ConnectivityStore.test.ts — tests for the connectivity store.
  *

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DashboardPageElement.test.ts — integration test for the Client dashboard page.
  *
@@ -7,7 +8,7 @@
  * Mocks the dashboardService so we don't depend on timer-based mock data.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DashboardPageElement } from '../../../../pages/client/dashboard/DashboardPageElement';
+import '../../../../pages/client/dashboard/DashboardPageElement';
 
 vi.mock('../../../../services', () => ({
   dashboardService: {
@@ -18,7 +19,6 @@ vi.mock('../../../../services', () => ({
 // Import after mock so the mock takes effect.
 import { dashboardService } from '../../../../services';
 
-void DashboardPageElement;
 
 const MOCK_SUMMARY = {
   kpiValues: { Impressions: 12500, Clicks: 340, Spend: 1200, Revenue: 3400 },

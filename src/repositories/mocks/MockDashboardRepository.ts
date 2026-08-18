@@ -26,8 +26,27 @@ export class MockDashboardRepository implements DashboardRepository {
       this.failNext = false;
       throw new Error('Failed to fetch dashboard data');
     }
-    // Vary data slightly by period to make deltas non-trivial.
     const dayDiff = Math.max(1, Math.round((period.end.getTime() - period.start.getTime()) / 86400000));
+    
+    // Generate dynamic data points across the period
+    const chartData: { date: Date; value: number }[] = [];
+    if (dayDiff <= 2) {
+      // Hourly data for Today/Yesterday
+      for (let i = 0; i < 24; i += 2) {
+        const d = new Date(period.start);
+        d.setHours(i);
+        chartData.push({ date: d, value: 100 + Math.random() * 500 });
+      }
+    } else {
+      // Daily data
+      const points = Math.min(dayDiff, 30);
+      const step = (period.end.getTime() - period.start.getTime()) / Math.max(1, points - 1);
+      for (let i = 0; i < points; i++) {
+        const d = new Date(period.start.getTime() + i * step);
+        chartData.push({ date: d, value: 500 + Math.random() * 2000 });
+      }
+    }
+
     return {
       kpiValues: {
         Impressions: 12500 + dayDiff * 10,
@@ -36,15 +55,7 @@ export class MockDashboardRepository implements DashboardRepository {
         Spend: 1200 + dayDiff * 5,
         Revenue: 3400 + dayDiff * 8,
       },
-      chartData: [
-        { label: 'Mon', value: 1200 },
-        { label: 'Tue', value: 1800 },
-        { label: 'Wed', value: 1500 },
-        { label: 'Thu', value: 2100 },
-        { label: 'Fri', value: 1900 },
-        { label: 'Sat', value: 800 },
-        { label: 'Sun', value: 600 },
-      ],
+      chartData,
     };
   }
 

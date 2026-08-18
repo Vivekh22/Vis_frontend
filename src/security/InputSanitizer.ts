@@ -1,5 +1,5 @@
 /**
- * InputSanitizer.ts — platform/security/
+ * InputSanitizer.ts — security/
  *
  * A minimal, auditable HTML sanitizer for user-provided rich text content.
  *

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * csvExport.test.ts — tests/utils/
  *

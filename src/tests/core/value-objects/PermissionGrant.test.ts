@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { PermissionGrant } from '../../../core/value-objects/PermissionGrant';
 

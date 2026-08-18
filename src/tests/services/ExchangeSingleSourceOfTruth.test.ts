@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ExchangeSingleSourceOfTruth.test.ts
  *

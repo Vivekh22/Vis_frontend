@@ -13,13 +13,15 @@
  * margin-change action types for admin-scoped queries, not just from
  * display. The frontend does not need to filter them client-side.
  */
-import { BaseComponent } from '../../../../platform/component/BaseComponent';
-import { ComponentRegistry } from '../../../../platform/component/ComponentRegistry';
-import { injectStyles, injectGlobalTokens } from '../../../../platform/component/ShadowRenderMixin';
-import { html } from '../../../../platform/rendering/SafeHtml';
-import { reportService } from '../../../../services';
-import { authStore } from '../../../../platform/state/AuthStore';
-import type { ActivityLogEntry } from '../../../../components/activity-log/ActivityLogElement';
+import { BaseComponent } from '../../../platform/component/BaseComponent';
+import { ComponentRegistry } from '../../../platform/component/ComponentRegistry';
+import { injectStyles, injectGlobalTokens } from '../../../platform/component/ShadowRenderMixin';
+import { html } from '../../../platform/rendering/SafeHtml';
+import { reportService } from '../../../services';
+import { authStore } from '../../../platform/state/AuthStore';
+import type { ActivityLogEntry } from '../../../components/activity-log/ActivityLogElement';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 interface ActivityLogHost extends HTMLElement {
   entries: ActivityLogEntry[];

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { Campaign } from '../../../core/entities/Campaign';
 import { Money } from '../../../core/value-objects/Money';

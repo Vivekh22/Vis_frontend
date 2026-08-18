@@ -3,14 +3,7 @@
  *
  * Represents a client support ticket with threaded conversation.
  *
- * !!! INTERNAL NOTES — ADMIN/SUPER-ADMIN ONLY !!!
- *
- * The `internalNotes` field exists on this entity but is NEVER populated
- * for client-facing requests. The SupportRepository.findAll() accepts an
- * `includeInternalNotes` flag (default false) — when false, internalNotes
- * is left null. Only admin/super-admin code paths pass `includeInternalNotes:
- * true`, making the Admin Support view the ONE place this client-hidden
- * field becomes visible. The Client Support view never sees it.
+ * Represents a client support ticket with threaded conversation.
  */
 import type { SupportTicketStatus } from '../enums/SupportTicketStatus';
 import type { SupportTicketPriority } from '../enums/SupportTicketPriority';
@@ -29,7 +22,6 @@ export class SupportTicket {
   private _status: SupportTicketStatus;
   private _priority: SupportTicketPriority;
   private readonly _messages: TicketMessage[] = [];
-  private _internalNotes: string | null = null;
 
   constructor(
     public readonly id: string,
@@ -59,14 +51,6 @@ export class SupportTicket {
 
   public get messages(): readonly TicketMessage[] {
     return this._messages;
-  }
-
-  public get internalNotes(): string | null {
-    return this._internalNotes;
-  }
-
-  public set internalNotes(value: string | null) {
-    this._internalNotes = value;
   }
 
   public get lastUpdatedAt(): Date {

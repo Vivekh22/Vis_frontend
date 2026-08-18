@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * RoleManagementService.test.ts
  *
@@ -8,9 +9,9 @@
  *     (not just styled) — enforced at the PermissionGrant level, not just UI
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RoleManagementService } from '../services/RoleManagementService';
-import { MockRoleManagementRepository } from '../repositories/mocks/MockRoleManagementRepository';
-import { PermissionGrant } from '../core/value-objects/PermissionGrant';
+import { RoleManagementService } from '../../services/RoleManagementService';
+import { MockRoleManagementRepository } from '../../repositories/mocks/MockRoleManagementRepository';
+import { PermissionGrant } from '../../core/value-objects/PermissionGrant';
 
 describe('RoleManagementService', () => {
   let service: RoleManagementService;

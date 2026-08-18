@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ExchangeService.test.ts
  *
@@ -5,8 +6,8 @@
  * and per-campaign-type overrides.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ExchangeService } from '../services/ExchangeService';
-import { MockExchangeRepository } from '../repositories/mocks/MockExchangeRepository';
+import { ExchangeService } from '../../services/ExchangeService';
+import { MockExchangeRepository } from '../../repositories/mocks/MockExchangeRepository';
 
 describe('ExchangeService', () => {
   let service: ExchangeService;

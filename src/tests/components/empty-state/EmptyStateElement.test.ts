@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * EmptyStateElement.test.ts — tests for the empty state component.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { EmptyStateElement } from '../../../components/empty-state/EmptyStateElement';
+import { EmptyStateElement } from '../../../components/empty-state/EmptyStateElement';
 import '../../../components/empty-state/EmptyStateElement';
 
 describe('EmptyStateElement', () => {

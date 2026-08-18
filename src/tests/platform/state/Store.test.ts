@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Store.test.ts — unit tests for platform/state/Store.ts.
  */

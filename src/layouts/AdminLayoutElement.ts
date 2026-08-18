@@ -26,46 +26,14 @@ import { html, SafeHtmlString } from '../platform/rendering/SafeHtml';
 import { PermissionGrant } from '../core/value-objects/PermissionGrant';
 import type { User } from '../platform/types';
 import type { PermissionLevel } from '../core/enums/PermissionLevel';
+import './CollapsibleNavElement';
+import { SIDEBAR_STYLES } from './sidebarStyles';
 
 const STYLES = `
   :host { display: flex; min-height: 100vh; font-family: var(--font-body); }
-  .sidebar {
-    width: 240px;
-    background: var(--color-surface);
-    border-right: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-4) 0;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .sidebar-logo {
-    padding: 0 var(--space-4) var(--space-4);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: var(--space-2);
-  }
-  .nav-group { margin-bottom: var(--space-3); }
-  .nav-group-label {
-    padding: var(--space-1) var(--space-4);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-  .nav-item {
-    display: block;
-    padding: var(--space-2) var(--space-4);
-    color: var(--color-text-muted);
-    text-decoration: none;
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-  }
-  .nav-item:hover { background: var(--color-bg); color: var(--color-text-primary); }
-  .main-area { flex: 1; display: flex; flex-direction: column; }
+  ${SIDEBAR_STYLES}
+  .sidebar { width: 240px; }
+  .main-area { flex: 1; display: flex; flex-direction: column; background: var(--color-bg); }
   .topbar {
     display: flex;
     align-items: center;
@@ -77,7 +45,7 @@ const STYLES = `
     top: 0;
     z-index: 100;
   }
-  .topbar-right { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .topbar-actions { display: flex; align-items: center; gap: var(--space-3); }
   .content { padding: var(--space-6); flex: 1; }
   @media (max-width: 768px) {
     :host { flex-direction: column; }
@@ -166,25 +134,21 @@ class AdminLayoutElement extends BaseComponent {
     });
   }
 
-  private renderSidebar(): string {
-    const groups = this.getVisibleNavGroups();
-    if (groups.length === 0) {
-      return '<div class="nav-group"><div class="nav-group-label">No Access</div></div>';
+  protected onMount(): void {
+    this.updateNav();
+  }
+
+  protected rerender(): void {
+    super.rerender();
+    this.updateNav();
+  }
+
+  private updateNav(): void {
+    const nav = this.query<any>('collapsible-nav');
+    if (nav) {
+      nav.groups = this.getVisibleNavGroups();
+      nav.currentPath = window.location.pathname;
     }
-    return groups
-      .map(
-        (group) => html`
-        <div class="nav-group">
-          <div class="nav-group-label">${group.label}</div>
-          ${SafeHtmlString.trusted(
-            group.items
-              .map((item) => html`<a class="nav-item" href="#${item.path}">${item.label}</a>`)
-              .join(''),
-          )}
-        </div>
-      `,
-      )
-      .join('');
   }
 
   protected renderTemplate(): string {
@@ -192,12 +156,12 @@ class AdminLayoutElement extends BaseComponent {
       <impersonation-banner></impersonation-banner>
       <div class="sidebar">
         <div class="sidebar-logo">VispriscaAds</div>
-        ${SafeHtmlString.trusted(this.renderSidebar())}
+        <collapsible-nav></collapsible-nav>
       </div>
       <div class="main-area">
         <div class="topbar">
-          <div class="topbar-right">
-            <theme-toggle></theme-toggle>
+          <div style="flex: 1;"></div>
+          <div class="topbar-actions">
             <notification-bell></notification-bell>
           </div>
         </div>

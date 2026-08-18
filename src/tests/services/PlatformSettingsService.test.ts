@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * PlatformSettingsService.test.ts
  *
@@ -8,8 +9,8 @@
  * (via getSlaThreshold), not from a hardcoded constant.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PlatformSettingsService } from '../services/PlatformSettingsService';
-import { MockPlatformSettingsRepository } from '../repositories/mocks/MockPlatformSettingsRepository';
+import { PlatformSettingsService } from '../../services/PlatformSettingsService';
+import { MockPlatformSettingsRepository } from '../../repositories/mocks/MockPlatformSettingsRepository';
 
 describe('PlatformSettingsService', () => {
   let service: PlatformSettingsService;

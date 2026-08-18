@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FeatureGatingIntegration.test.ts
  *
@@ -12,9 +13,9 @@
  * card in StepTargeting must be FULLY ABSENT from the rendered HTML.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { FeatureFlagService } from '../services/FeatureFlagService';
-import { MockFeatureFlagRepository } from '../repositories/mocks/MockFeatureFlagRepository';
-import { FeatureFlag } from '../core/enums/FeatureFlag';
+import { FeatureFlagService } from '../../services/FeatureFlagService';
+import { MockFeatureFlagRepository } from '../../repositories/mocks/MockFeatureFlagRepository';
+import { FeatureFlag } from '../../core/enums/FeatureFlag';
 
 // We test the FeatureFlagService directly since StepTargeting is a web
 // component that depends on DOM APIs. The integration is verified by

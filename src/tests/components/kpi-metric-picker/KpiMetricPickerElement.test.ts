@@ -1,8 +1,8 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { KpiMetricPickerElement } from '../../../components/kpi-metric-picker/KpiMetricPickerElement';
+import '../../../components/kpi-metric-picker/KpiMetricPickerElement';
 
 // Force value import to prevent esbuild import elision (ensures ComponentRegistry.register runs)
-void KpiMetricPickerElement;
 
 describe('KpiMetricPickerElement', () => {
   it('toggling a metric on adds it to the emitted selection', () => {

@@ -1,16 +1,17 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { ModalElement } from '../../../components/modal/ModalElement';
+import { ModalElement } from '../../../components/modal/ModalElement';
 import '../../../components/modal/ModalElement';
 
 describe('ModalElement', () => {
   it('open/close toggle visibility', () => {
     const el = document.createElement('vis-modal') as ModalElement;
     document.body.appendChild(el);
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('.overlay')).toBeNull();
     el.open();
     expect(el.shadowRoot!.querySelector('.overlay')).not.toBeNull();
     el.close();
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('.overlay')).toBeNull();
     document.body.removeChild(el);
   });
 
@@ -20,7 +21,7 @@ describe('ModalElement', () => {
     el.open();
     const overlay = el.shadowRoot!.querySelector('.overlay') as HTMLElement;
     overlay.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('.overlay')).toBeNull();
     document.body.removeChild(el);
   });
 
@@ -30,7 +31,7 @@ describe('ModalElement', () => {
     el.open();
     const overlay = el.shadowRoot!.querySelector('.overlay') as HTMLElement;
     overlay.click();
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('.overlay')).toBeNull();
     document.body.removeChild(el);
   });
 

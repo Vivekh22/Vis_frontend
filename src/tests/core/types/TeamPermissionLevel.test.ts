@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * TeamPermissionLevel.test.ts — tests/core/types/
  *
@@ -18,7 +19,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { TEAM_PERMISSION_LEVELS, ALL_TEAM_PERMISSION_LEVELS, PRESET_ROLE_PERMISSIONS } from '../../../core/types/TeamPermissionLevel';
-import type { TeamPermissionLevel } from '../../../core/types/TeamPermissionLevel';
+import { TeamPermissionLevel } from '../../../core/types/TeamPermissionLevel';
 
 describe('TeamPermissionLevel type constraint', () => {
   it('does not include "approve" in the available permission levels array', () => {

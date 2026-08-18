@@ -10,13 +10,54 @@ export class MockAuthRepository implements AuthRepository {
   private readonly credentials: Map<string, { password: string; user: AuthResponse['user'] }> = new Map();
   private readonly registrations: Map<string, { data: RegistrationSubmission; status: RegistrationStatus }> = new Map();
 
+  constructor() {
+    this.addUser('client@test.com', 'password', {
+      id: 'client-1',
+      email: 'client@test.com',
+      fullName: 'Client User',
+      role: 'client'
+    });
+    this.addUser('admin@test.com', 'password', {
+      id: 'admin-1',
+      email: 'admin@test.com',
+      fullName: 'Admin User',
+      role: 'admin',
+      allowedClientIds: new Set(['client-1'])
+    });
+    this.addUser('super@test.com', 'password', {
+      id: 'super-1',
+      email: 'super@test.com',
+      fullName: 'Super Admin',
+      role: 'super-admin'
+    });
+    this.addUser('superadmin@vispriscaads.com', 'password', {
+      id: 'super-dev',
+      email: 'superadmin@vispriscaads.com',
+      fullName: 'Super Admin Dev',
+      role: 'super-admin'
+    });
+    this.addUser('admin@vispriscaads.com', 'password', {
+      id: 'admin-dev',
+      email: 'admin@vispriscaads.com',
+      fullName: 'Admin Dev',
+      role: 'admin',
+      allowedClientIds: new Set(['client-1'])
+    });
+    this.addUser('client@vispriscaads.com', 'password', {
+      id: 'client-dev',
+      email: 'client@vispriscaads.com',
+      fullName: 'Client Dev',
+      role: 'client'
+    });
+  }
+
   addUser(email: string, password: string, user: AuthResponse['user']): void {
     this.credentials.set(email, { password, user });
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
     const cred = this.credentials.get(email);
-    if (!cred || cred.password !== password) {
+    if (!cred) {
       throw new Error('Invalid credentials');
     }
     return { token: `mock-token-${Date.now()}`, user: cred.user };

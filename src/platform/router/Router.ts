@@ -59,22 +59,42 @@ export class Router {
     if (path === window.location.pathname) {
       return;
     }
+    
+    // Check global navigation guard
+    if (typeof (window as any).__navigationGuard === 'function') {
+      const canNavigate = (window as any).__navigationGuard(path);
+      if (!canNavigate) return; // Guard blocked navigation
+    }
+
     window.history.pushState({}, '', path);
     this.renderRoute(path);
   }
 
   private onLinkClick(event: MouseEvent): void {
-    const target = event.target as Element | null;
-    if (!target) return;
-    const link = target.closest(LINK_SELECTOR) as HTMLAnchorElement | null;
+    // Use composedPath() so clicks originating inside a shadow root are still
+    // resolved to their real target (the <a> element). event.target would be
+    // retargeted to the shadow host, making closest() miss the anchor.
+    const path = event.composedPath();
+    const origin = path[0] as Element | null;
+    if (!origin || !(origin instanceof Element)) return;
+    const link = origin.closest(LINK_SELECTOR) as HTMLAnchorElement | null;
     if (!link) return;
     event.preventDefault();
-    const path = link.getAttribute('href');
-    if (!path) return;
-    this.navigate(path);
+    const pathAttr = link.getAttribute('href');
+    if (!pathAttr) return;
+    this.navigate(pathAttr);
   }
 
   private onPopState(): void {
+    if (typeof (window as any).__navigationGuard === 'function') {
+      const canNavigate = (window as any).__navigationGuard(window.location.pathname);
+      if (!canNavigate) {
+        // We can't easily undo the back button natively without tracking history,
+        // but for this MVP, we can just block rendering the new route.
+        // The URL will change but the view won't.
+        return;
+      }
+    }
     this.renderRoute(window.location.pathname);
   }
 

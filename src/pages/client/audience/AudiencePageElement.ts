@@ -17,6 +17,8 @@ import { audienceService } from '../../../services';
 import type { AudienceList } from '../../../core/entities/AudienceList';
 import { AudienceDataSource } from '../../../core/enums/AudienceDataSource';
 import { parseCsv } from '../../../utils/csvParser';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

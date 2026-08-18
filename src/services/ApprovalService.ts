@@ -76,11 +76,11 @@ export class ApprovalService {
   async listPendingApprovals(allowedClientIds?: ReadonlySet<string>): Promise<ApprovalQueueItem[]> {
     const items = await this.approvalRepo.findAll();
     return items
-      .filter((item) => {
+      .filter((item: any) => {
         if (!allowedClientIds) return true;
         return allowedClientIds.has(item.clientId);
       })
-      .map((item) => ({
+      .map((item: any) => ({
         id: item.id,
         type: item.type,
         client: item.clientName,

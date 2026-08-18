@@ -29,6 +29,7 @@
  */
 import { Route } from './Route';
 import { authStore } from '../state/AuthStore';
+import { sessionStore } from '../state/SessionStore';
 import type { User, PermissionLevel } from '../types';
 import { PermissionGrant } from '../../core/value-objects/PermissionGrant';
 import { PERMISSION_LEVEL_RANK } from '../../core/enums/PermissionLevel';
@@ -82,16 +83,28 @@ export class RouteGuard {
    * Returns true iff the current user may activate `route`.
    * 1. If the route requires a role and the user is unauthenticated → deny.
    * 2. If authenticated but the user's role is not in requiredRole → deny.
+   *    DURING an active impersonation of a Client, the effective role is the
+   *    impersonated entity's role ('client'), NOT the acting user's own role.
+   *    The underlying authStore identity stays the true Admin / Super Admin —
+   *    only the *route-access* check is re-scoped to the impersonation target.
    * 3. If requiredPermission is set and the user lacks that level → deny.
    * 4. If targetClientId is set and the user cannot access that client → deny.
    */
   public static canActivate(route: Route): boolean {
     const auth = authStore.getState();
+    const session = sessionStore.getState();
+    // While impersonating a Client, the acting Admin / Super Admin should be
+    // permitted onto Client routes (Client layout + Client pages). Fall back
+    // to the real authenticated role only when NOT impersonating.
+    const effectiveRole =
+      session.isImpersonating && session.impersonatedEntityType === 'client'
+        ? 'client'
+        : auth.role;
     if (route.requiredRole !== null) {
       if (!auth.isAuthenticated) {
         return false;
       }
-      if (!auth.role || !route.requiredRole.includes(auth.role)) {
+      if (!effectiveRole || !route.requiredRole.includes(effectiveRole)) {
         return false;
       }
     }

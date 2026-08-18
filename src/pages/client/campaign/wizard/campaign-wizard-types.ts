@@ -46,8 +46,11 @@ export interface CampaignFormData {
   deviceIdentifier: string;
   smartAppCategories: string;
   appWhitelist: string;
-  audienceList: string;
-  ipList: string;
+  appBlacklist: string;
+  audienceWhitelist: string;
+  audienceBlacklist: string;
+  ipWhitelist: string;
+  ipBlacklist: string;
 
   // Step 5 — Bid Multiplier
   bidMultiplierRules: BidMultiplierRule[];
@@ -100,8 +103,11 @@ export const INITIAL_CAMPAIGN_DATA: CampaignFormData = {
   deviceIdentifier: '',
   smartAppCategories: '',
   appWhitelist: '',
-  audienceList: '',
-  ipList: '',
+  appBlacklist: '',
+  audienceWhitelist: '',
+  audienceBlacklist: '',
+  ipWhitelist: '',
+  ipBlacklist: '',
 
   bidMultiplierRules: [],
 

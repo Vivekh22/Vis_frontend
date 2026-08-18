@@ -29,16 +29,28 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { dashboardService, suggestionService } from '../../../services';
 import type { DashboardSummary } from '../../../services/DashboardService';
 import { DateRange } from '../../../core/value-objects/DateRange';
-import type { ReportTileData } from '../../../components/report-shortcut-tile/ReportShortcutTileElement';
+import { ReportShortcutTileElement } from '../../../components/report-shortcut-tile/ReportShortcutTileElement';
+import '../../../components/report-shortcut-tile/ReportBreakdownElement';
+import '../../../components/ai-suggestion/AiSuggestionPopupElement';
+import '../../../components/empty-state/EmptyStateElement';
+import '../../../components/loading-state/LoadingStateElement';
+import '../../../components/kpi-metric-picker/KpiMetricPickerElement';
+import '../../../components/period-selector/PeriodSelectorElement';
+import '../../../components/chart-widget/ChartWidgetElement';
+
+
+
 
 interface ChartWidgetHost extends HTMLElement {
   data: { label: string; value: number }[];
   chartType: 'bar' | 'line' | 'area';
+  format: 'number' | 'currency';
   isLoading: boolean;
 }
 
 interface KpiMetricPickerHost extends HTMLElement {
   selectedMetrics: string[];
+  deltas: Record<string, { value: number; direction: 'up' | 'down' | 'flat' }>;
 }
 
 interface LoadingStateHost extends HTMLElement {
@@ -51,12 +63,25 @@ interface PeriodSelectorHost extends HTMLElement {
 }
 
 interface ReportTileHost extends HTMLElement {
-  tileData: ReportTileData;
+  label: string;
   expanded: boolean;
 }
 
+interface ReportBreakdownHost extends HTMLElement {
+  tileKey: string;
+  summary: DashboardSummary | null;
+}
+
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
+  :host { 
+    display: block; 
+    font-family: var(--font-body); 
+    animation: fadeIn 0.5s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .dashboard-header {
     display: flex;
     align-items: center;
@@ -64,10 +89,13 @@ const STYLES = `
     margin-bottom: var(--space-6);
   }
   .dashboard-title {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text-primary);
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin: 0;
+    letter-spacing: -0.02em;
   }
   .dashboard-controls {
     display: flex;
@@ -77,90 +105,141 @@ const STYLES = `
   .chart-type-toggle {
     display: flex;
     gap: var(--space-1);
+    background: var(--color-surface-2);
+    padding: 4px;
+    border-radius: var(--radius-lg);
   }
   .chart-type-btn {
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg);
+    padding: var(--space-2) var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
     cursor: pointer;
     font-size: var(--font-size-xs);
-    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .chart-type-btn:hover {
+    color: var(--color-text-primary);
   }
   .chart-type-btn.active {
-    background: var(--color-primary);
-    color: var(--color-primary-foreground);
-    border-color: var(--color-primary);
+    background: var(--color-bg);
+    color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   .insight-line {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-left: 3px solid var(--color-primary);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    margin-bottom: var(--space-4);
+    background: linear-gradient(145deg, rgba(79, 70, 229, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
     font-size: var(--font-size-sm);
     color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  }
+  .insight-line::before {
+    content: '✨';
+    font-size: 1.2rem;
   }
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
   }
   .kpi-card {
-    background: var(--color-surface);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
+    border-radius: 16px;
+    padding: var(--space-5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    border-color: var(--color-primary-light);
+  }
+  .kpi-card:hover::before {
+    opacity: 1;
   }
   .kpi-label {
     font-size: var(--font-size-xs);
+    font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin: 0 0 var(--space-1);
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--space-2);
   }
   .kpi-value {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
+    font-size: 2rem;
+    font-weight: 800;
     color: var(--color-text-primary);
     margin: 0;
+    letter-spacing: -0.01em;
   }
   .kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    margin-top: var(--space-1);
+    font-weight: 700;
+    margin-top: var(--space-2);
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: var(--color-surface-2);
   }
-  .kpi-delta.up { color: var(--color-success); }
-  .kpi-delta.down { color: var(--color-danger); }
+  .kpi-delta.up { color: var(--color-success); background: rgba(34, 197, 94, 0.1); }
+  .kpi-delta.down { color: var(--color-danger); background: rgba(239, 68, 68, 0.1); }
   .kpi-delta.flat { color: var(--color-text-muted); }
   .chart-section {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    margin-bottom: var(--space-6);
+    border-radius: 16px;
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
   }
   .chart-title {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--color-text-primary);
-    margin: 0 0 var(--space-3);
+    margin: 0;
   }
   .report-tiles {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
   }
-  .low-network-notice {
-    background: var(--color-warning-bg, #fef3c7);
-    border: 1px solid var(--color-warning-border, #f59e0b);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    font-size: var(--font-size-sm);
-    color: var(--color-warning-text, #92400e);
-    margin-bottom: var(--space-4);
+  @media (prefers-color-scheme: dark) {
+    .insight-line {
+      background: linear-gradient(145deg, rgba(79, 70, 229, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+    }
+    .kpi-card {
+      background: rgba(0, 0, 0, 0.2);
+    }
   }
 `;
 
@@ -175,7 +254,7 @@ const REPORT_TILES: { key: string; label: string }[] = [
 class DashboardPageElement extends BaseComponent {
   private isLoading = true;
   private summary: DashboardSummary | null = null;
-  private selectedMetrics = ['Impressions', 'Clicks', 'Spend', 'Revenue'];
+  private selectedMetrics = ['Impressions', 'Clicks', 'Spend', 'Installs'];
   private chartType: 'bar' | 'line' | 'area' = 'bar';
   private currentPeriod: DateRange = DateRange.fromPeriodOption('7d');
   private expandedTileKey: string | null = null;
@@ -208,7 +287,7 @@ class DashboardPageElement extends BaseComponent {
     this.rerender();
     this.syncLoadingState();
     try {
-      this.summary = await dashboardService.getDashboardSummary(this.currentPeriod);
+      this.summary = await dashboardService.getDashboardSummary(this.currentPeriod, this.selectedMetrics);
     } catch {
       this.summary = null;
     }
@@ -254,11 +333,13 @@ class DashboardPageElement extends BaseComponent {
     if (chart) {
       chart.data = this.summary.chartData;
       chart.chartType = this.chartType;
+      chart.format = 'currency';
       chart.isLoading = false;
     }
     const picker = this.shadow.querySelector<KpiMetricPickerHost>('kpi-metric-picker');
     if (picker) {
       picker.selectedMetrics = this.selectedMetrics;
+      picker.deltas = this.summary.deltas;
     }
     const period = this.shadow.querySelector<PeriodSelectorHost>('period-selector');
     if (period) {
@@ -269,26 +350,14 @@ class DashboardPageElement extends BaseComponent {
 
   private syncExpandedTile(): void {
     if (!this.expandedTileKey || !this.summary) return;
-    const tile = this.shadow.querySelector<ReportTileHost>(`[data-tile-key="${this.expandedTileKey}"]`);
-    if (tile) {
-      tile.tileData = this.buildTileData(this.expandedTileKey);
-      tile.expanded = true;
+    const breakdown = this.shadow.querySelector<ReportBreakdownHost>(`report-breakdown[data-breakdown-key="${this.expandedTileKey}"]`);
+    if (breakdown) {
+      breakdown.tileKey = this.expandedTileKey;
+      breakdown.summary = this.summary;
     }
   }
 
-  private buildTileData(tileKey: string): ReportTileData {
-    const chartData = this.summary?.chartData ?? [];
-    return {
-      label: REPORT_TILES.find((t) => t.key === tileKey)?.label ?? tileKey,
-      chartData,
-      tableRows: chartData.map((d, i) => ({ label: d.label, value: d.value, index: i + 1 })),
-      tableColumns: [
-        { key: 'label', label: 'Label' },
-        { key: 'value', label: 'Value' },
-        { key: 'index', label: '#' },
-      ],
-    };
-  }
+
 
   private handlePeriodChanged = (event: Event): void => {
     const detail = (event as CustomEvent<DateRange>).detail;
@@ -301,8 +370,7 @@ class DashboardPageElement extends BaseComponent {
   private handleMetricsChanged = (event: Event): void => {
     const detail = (event as CustomEvent<string[]>).detail;
     this.selectedMetrics = detail;
-    this.rerender();
-    this.syncChildComponents();
+    void this.loadSummary();
   };
 
   private handleTileClicked = (event: Event): void => {
@@ -334,12 +402,11 @@ class DashboardPageElement extends BaseComponent {
     for (const tile of REPORT_TILES) {
       const el = this.shadow.querySelector<ReportTileHost>(`[data-tile-key="${tile.key}"]`);
       if (el) {
+        el.label = tile.label;
         el.expanded = tile.key === this.expandedTileKey;
-        if (el.expanded) {
-          el.tileData = this.buildTileData(tile.key);
-        }
       }
     }
+    this.syncExpandedTile();
   }
 
   private renderKpiCards(): string {
@@ -362,7 +429,11 @@ class DashboardPageElement extends BaseComponent {
   private renderReportTiles(): string {
     return REPORT_TILES.map((tile) => {
       const expanded = tile.key === this.expandedTileKey;
-      return `<report-shortcut-tile data-tile-key="${tile.key}" ${expanded ? 'data-expanded' : ''}></report-shortcut-tile>`;
+      return html`
+        <report-shortcut-tile data-tile-key="${tile.key}" ${expanded ? 'data-expanded' : ''}>
+          ${expanded ? SafeHtmlString.trusted(`<report-breakdown data-breakdown-key="${tile.key}"></report-breakdown>`) : ''}
+        </report-shortcut-tile>
+      `;
     }).join('');
   }
 
@@ -396,11 +467,13 @@ class DashboardPageElement extends BaseComponent {
       <kpi-metric-picker></kpi-metric-picker>
       <div class="kpi-grid">${SafeHtmlString.trusted(this.renderKpiCards())}</div>
       <div class="chart-section">
-        <p class="chart-title">Performance Overview</p>
-        <div class="chart-type-toggle">
-          <button class="chart-type-btn ${this.chartType === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
-          <button class="chart-type-btn ${this.chartType === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
-          <button class="chart-type-btn ${this.chartType === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+        <div class="chart-header">
+          <p class="chart-title">Performance Overview</p>
+          <div class="chart-type-toggle">
+            <button class="chart-type-btn ${this.chartType === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
+            <button class="chart-type-btn ${this.chartType === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
+            <button class="chart-type-btn ${this.chartType === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+          </div>
         </div>
         <chart-widget></chart-widget>
       </div>

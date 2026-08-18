@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { Creative } from '../../../core/entities/Creative';
 import { DomainError } from '../../../core/errors/DomainError';

@@ -22,6 +22,8 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { roleManagementService, clientService } from '../../../../services';
 import type { PermissionLevel } from '../../../../core/enums/PermissionLevel';
 import type { ClientSummary } from '../../../../core/types/ClientSummary';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const MODULES = [
   { key: 'dashboard', label: 'Dashboard', delegable: true },

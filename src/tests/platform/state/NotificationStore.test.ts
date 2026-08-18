@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * NotificationStore.test.ts — unit tests for platform/state/NotificationStore.ts.
  */

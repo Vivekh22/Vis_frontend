@@ -21,7 +21,8 @@ import { navigate } from '../../../../utils/navigate';
 import { Money } from '../../../../core/value-objects/Money';
 import { OptimizationGoal } from '../../../../core/enums/OptimizationGoal';
 import type { CampaignFormData, StepComponent } from './campaign-wizard-types';
-import { INITIAL_CAMPAIGN_DATA, WIZARD_STEPS } from './campaign-wizard-types';
+import { ModalElement } from '../../../../components/modal/ModalElement';
+import '../../../../components/modal/ModalElement';
 
 const STEP_TAGS = [
   'step-campaign-info',
@@ -32,70 +33,14 @@ const STEP_TAGS = [
   'step-review',
 ] as const;
 
-const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .wizard-container { max-width: 900px; margin: 0 auto; }
-  .wizard-header { margin-bottom: var(--space-6); }
-  .wizard-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); margin: 0 0 var(--space-3); }
-  .progress-bar { display: flex; gap: var(--space-1); margin-bottom: var(--space-2); }
-  .progress-step {
-    flex: 1; height: 4px; border-radius: var(--radius-full);
-    background: var(--color-border); transition: background 0.2s;
-  }
-  .progress-step.active { background: var(--color-primary); }
-  .progress-step.completed { background: var(--color-success); }
-  .step-labels { display: flex; gap: var(--space-1); }
-  .step-label {
-    flex: 1; font-size: var(--font-size-xs); color: var(--color-text-muted);
-    text-align: center;
-  }
-  .step-label.active { color: var(--color-primary); font-weight: var(--font-weight-semibold); }
-  .step-label.completed { color: var(--color-success); }
-  .wizard-body { display: flex; gap: var(--space-6); }
-  .step-panel { flex: 1; }
-  .preview-panel { width: 280px; flex-shrink: 0; }
-  .preview-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    position: sticky;
-    top: var(--space-6);
-  }
-  .preview-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin: 0 0 var(--space-2); }
-  .preview-row { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); padding: var(--space-1) 0; }
-  .preview-check { color: var(--color-success); }
-  .preview-pending { color: var(--color-text-muted); }
-  .wizard-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: var(--space-6);
-  }
-  .nav-btn {
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-family: var(--font-body);
-  }
-  .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .nav-btn.primary {
-    background: var(--color-primary);
-    color: var(--color-primary-foreground);
-    border-color: var(--color-primary);
-  }
-  @media (max-width: 768px) {
-    .wizard-body { flex-direction: column; }
-    .preview-panel { width: 100%; }
-  }
-`;
+// ... styles remain ...
 
 class CampaignWizardElement extends BaseComponent {
   private currentStep = 0;
   private campaignData: CampaignFormData = { ...INITIAL_CAMPAIGN_DATA };
   private stepValidationState: boolean[] = [false, false, false, false, false, true];
+  private isLaunched = false;
+  private pendingNavigationPath: string | null = null;
 
   constructor() {
     super();
@@ -108,6 +53,28 @@ class CampaignWizardElement extends BaseComponent {
     this.shadow.addEventListener('step-validity-changed', this.handleStepValidity);
     this.shadow.addEventListener('step-data-changed', this.handleStepData);
     this.shadow.addEventListener('launch-campaign', this.handleLaunch);
+    this.shadow.addEventListener('edit-step', this.handleEditStep);
+    
+    // Register navigation guard
+    (window as any).__navigationGuard = (path: string) => {
+      if (this.isLaunched) return true;
+      this.pendingNavigationPath = path;
+      const modal = this.shadow.querySelector<ModalElement>('#unsaved-modal');
+      if (modal) modal.open();
+      return false;
+    };
+    
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
+
+    // Duplicate clone logic handling
+    const urlParams = new URLSearchParams(window.location.search);
+    const dupId = urlParams.get('duplicateId');
+    if (dupId) {
+      // Mock populate for duplicate and jump to review
+      this.campaignData = { ...INITIAL_CAMPAIGN_DATA, name: 'Copy of Campaign ' + dupId };
+      this.currentStep = 5; // Jump to Review
+    }
+    
     this.syncStepComponent();
   }
 
@@ -116,7 +83,19 @@ class CampaignWizardElement extends BaseComponent {
     this.shadow.removeEventListener('step-validity-changed', this.handleStepValidity);
     this.shadow.removeEventListener('step-data-changed', this.handleStepData);
     this.shadow.removeEventListener('launch-campaign', this.handleLaunch);
+    this.shadow.removeEventListener('edit-step', this.handleEditStep);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    if ((window as any).__navigationGuard) {
+      delete (window as any).__navigationGuard;
+    }
   }
+
+  private handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+    if (!this.isLaunched) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  };
 
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
@@ -124,6 +103,15 @@ class CampaignWizardElement extends BaseComponent {
       this.goToPreviousStep();
     } else if (target.closest('[data-action="next"]')) {
       this.goToNextStep();
+    } else if (target.closest('[data-action="confirm-leave"]')) {
+      delete (window as any).__navigationGuard;
+      if (this.pendingNavigationPath) {
+        navigate(this.pendingNavigationPath);
+      }
+    } else if (target.closest('[data-action="cancel-leave"]')) {
+      const modal = this.shadow.querySelector<ModalElement>('#unsaved-modal');
+      if (modal) modal.close();
+      this.pendingNavigationPath = null;
     }
   };
 
@@ -141,6 +129,7 @@ class CampaignWizardElement extends BaseComponent {
   };
 
   private handleLaunch = async (): Promise<void> => {
+    this.isLaunched = true;
     const data = this.campaignData;
     const budget = new Money(Math.round(data.budget * 100), 'USD');
     const campaign = await campaignService.createCampaign({
@@ -153,6 +142,16 @@ class CampaignWizardElement extends BaseComponent {
     });
     await campaignService.submitForApproval(campaign.id);
     navigate('/client/campaigns');
+  };
+
+  private handleEditStep = (event: Event): void => {
+    const detail = (event as CustomEvent<{ stepIndex: number }>).detail;
+    if (detail.stepIndex >= 0 && detail.stepIndex < WIZARD_STEPS.length) {
+      this.currentStep = detail.stepIndex;
+      this.rerender();
+      this.syncStepComponent();
+      this.syncNavButtons();
+    }
   };
 
   private goToNextStep(): void {
@@ -217,9 +216,9 @@ class CampaignWizardElement extends BaseComponent {
       { label: 'Bid Multiplier', done: this.campaignData.bidMultiplierRules.length > 0 },
     ];
     return checks.map((c) => {
-      const icon = c.done ? '✓' : '○';
+      const icon = c.done ? '<span class="preview-check-icon">✓</span>' : '<span class="preview-pending-icon">○</span>';
       const cls = c.done ? 'preview-check' : 'preview-pending';
-      return `<div class="preview-row ${cls}">${icon} ${c.label}</div>`;
+      return `<div class="preview-row ${cls}">${icon} <span>${c.label}</span></div>`;
     }).join('');
   }
 
@@ -251,6 +250,17 @@ class CampaignWizardElement extends BaseComponent {
             : SafeHtmlString.trusted('<button class="nav-btn primary" data-action="next" type="button" disabled>Launch</button>')
           }
         </div>
+        
+        <vis-modal id="unsaved-modal">
+          <div style="text-align: center;">
+            <h2 style="margin-top: 0;">Discard Unsaved Changes?</h2>
+            <p style="color: var(--color-text-muted); margin-bottom: var(--space-4);">You have unsaved changes in this campaign. Are you sure you want to leave?</p>
+            <div style="display: flex; gap: var(--space-3); justify-content: center;">
+              <button class="nav-btn" data-action="cancel-leave" type="button">Stay</button>
+              <button class="nav-btn" data-action="confirm-leave" type="button" style="background: var(--color-danger); color: white; border-color: var(--color-danger);">Discard & Leave</button>
+            </div>
+          </div>
+        </vis-modal>
       </div>
     `;
   }

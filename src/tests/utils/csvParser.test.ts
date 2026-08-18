@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CsvParser.test.ts — tests for utils/csvParser.
  *

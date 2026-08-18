@@ -22,46 +22,15 @@ import { ComponentRegistry } from '../platform/component/ComponentRegistry';
 import { injectStyles, injectGlobalTokens } from '../platform/component/ShadowRenderMixin';
 import { html, SafeHtmlString } from '../platform/rendering/SafeHtml';
 import type { User } from '../platform/types';
+import '../components/view-as-control/SuperAdminViewAsElement';
+import './CollapsibleNavElement';
+import { SIDEBAR_STYLES } from './sidebarStyles';
 
 const STYLES = `
-  :host { display: flex; min-height: 100vh; font-family: var(--font-body); }
-  .sidebar {
-    width: 260px;
-    background: var(--color-surface);
-    border-right: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-4) 0;
-    overflow-y: auto;
-    flex-shrink: 0;
-  }
-  .sidebar-logo {
-    padding: 0 var(--space-4) var(--space-4);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: var(--space-2);
-  }
-  .nav-group { margin-bottom: var(--space-3); }
-  .nav-group-label {
-    padding: var(--space-1) var(--space-4);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-  .nav-item {
-    display: block;
-    padding: var(--space-2) var(--space-4);
-    color: var(--color-text-muted);
-    text-decoration: none;
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-  }
-  .nav-item:hover { background: var(--color-bg); color: var(--color-text-primary); }
-  .main-area { flex: 1; display: flex; flex-direction: column; }
+  :host { display: flex; height: 100vh; overflow: hidden; font-family: var(--font-body); }
+  ${SIDEBAR_STYLES}
+  .sidebar { width: 260px; }
+  .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--color-bg); }
   .topbar {
     display: flex;
     align-items: center;
@@ -69,12 +38,10 @@ const STYLES = `
     padding: var(--space-3) var(--space-6);
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    flex-shrink: 0;
   }
-  .topbar-right { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
-  .content { padding: var(--space-6); flex: 1; }
+  .topbar-actions { display: flex; align-items: center; gap: var(--space-3); }
+  .content { padding: var(--space-6); flex: 1; overflow-y: auto; }
   @media (max-width: 768px) {
     :host { flex-direction: column; }
     .sidebar { width: 100%; max-height: 300px; }
@@ -165,19 +132,21 @@ class SuperAdminLayoutElement extends BaseComponent {
     return this._user;
   }
 
-  private renderSidebar(): string {
-    return SUPER_ADMIN_NAV.map(
-      (group) => html`
-        <div class="nav-group">
-          <div class="nav-group-label">${group.label}</div>
-          ${SafeHtmlString.trusted(
-            group.items
-              .map((item) => html`<a class="nav-item" href="#${item.path}">${item.label}</a>`)
-              .join(''),
-          )}
-        </div>
-      `,
-    ).join('');
+  protected onMount(): void {
+    this.updateNav();
+  }
+
+  protected rerender(): void {
+    super.rerender();
+    this.updateNav();
+  }
+
+  private updateNav(): void {
+    const nav = this.query<any>('collapsible-nav');
+    if (nav) {
+      nav.groups = SUPER_ADMIN_NAV;
+      nav.currentPath = window.location.pathname;
+    }
   }
 
   protected renderTemplate(): string {
@@ -185,12 +154,13 @@ class SuperAdminLayoutElement extends BaseComponent {
       <impersonation-banner></impersonation-banner>
       <div class="sidebar">
         <div class="sidebar-logo">VispriscaAds</div>
-        ${SafeHtmlString.trusted(this.renderSidebar())}
+        <collapsible-nav></collapsible-nav>
       </div>
       <div class="main-area">
         <div class="topbar">
-          <div class="topbar-right">
-            <theme-toggle></theme-toggle>
+          <div style="flex: 1;"></div>
+          <div class="topbar-actions">
+            <super-admin-view-as></super-admin-view-as>
             <notification-bell></notification-bell>
           </div>
         </div>

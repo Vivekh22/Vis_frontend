@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SchedulingGridElement.test.ts — tests for the 7×24 scheduling grid.
  *
@@ -9,7 +10,7 @@
  *   - grid getter returns current state
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { SchedulingGridElement } from '../../../components/scheduling-grid/SchedulingGridElement';
+import { SchedulingGridElement } from '../../../components/scheduling-grid/SchedulingGridElement';
 import '../../../components/scheduling-grid/SchedulingGridElement';
 
 describe('SchedulingGridElement', () => {

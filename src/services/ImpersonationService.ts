@@ -37,7 +37,7 @@ export class ImpersonationService {
     }
 
     if (actingAsRole === 'admin') {
-      if (!this.permissionService.canAccessClient(user, clientId)) {
+      if (user.role !== 'super-admin' && !this.permissionService.canAccessClient(user, clientId)) {
         throw new PermissionDeniedError(
           `Admin ${user.fullName} cannot access client ${clientId}: outside allowedClientIds`,
           'view',

@@ -69,6 +69,14 @@ import { applyCspMeta } from './security/ContentSecurityPolicy';
 import './pages/client/registration/steps/StepWelcomeLogin';
 
 const root = document.getElementById('app-root');
+
+window.addEventListener('error', (e) => {
+  alert('Global Error: ' + e.message);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  alert('Unhandled Promise Rejection: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+
 if (root instanceof HTMLElement) {
   // Inject structural design tokens at document level for light-DOM consumers.
   const tokenStyle = document.createElement('style');
@@ -90,6 +98,12 @@ if (root instanceof HTMLElement) {
 
   const routes = [
     // Public routes — no authentication required
+    new Route({
+      path: '/',
+      component: LoginPageElement,
+      requiredRole: null,
+      requiredPermission: null,
+    }),
     new Route({
       path: '/login',
       component: LoginPageElement,

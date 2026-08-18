@@ -42,6 +42,9 @@ export const SEMANTIC_COLOR_CSS_VARS: Readonly<Record<string, string>> = {
   colorDangerForeground: '--color-danger-foreground',
   colorSuccess: '--color-success',
   colorWarning: '--color-warning',
+  colorWarningBg: '--color-warning-bg',
+  colorWarningBorder: '--color-warning-border',
+  colorWarningText: '--color-warning-text',
 };
 
 export const tokens = {
@@ -59,6 +62,9 @@ export const tokens = {
     dangerForeground: 'var(--color-danger-foreground)',
     success: 'var(--color-success)',
     warning: 'var(--color-warning)',
+    warningBg: 'var(--color-warning-bg)',
+    warningBorder: 'var(--color-warning-border)',
+    warningText: 'var(--color-warning-text)',
   },
   spacing: {
     1: '0.25rem',

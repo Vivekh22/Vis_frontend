@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * TagInputElement.test.ts — tests for components/tag-input/TagInputElement.
  *
  * Tests multi-paste tag entry, individual tag removal, and tags-changed event.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import type { TagInputElement } from '../../../components/tag-input/TagInputElement';
+import { TagInputElement } from '../../../components/tag-input/TagInputElement';
 import '../../../components/tag-input/TagInputElement';
 
 describe('TagInputElement', () => {

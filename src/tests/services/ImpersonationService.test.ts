@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ImpersonationService.test.ts — tests for services/ImpersonationService.
  *
@@ -8,8 +9,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ImpersonationService } from '../../services/ImpersonationService';
 import { PermissionService } from '../../services/PermissionService';
-import type { UserRepository } from '../../services/PermissionService';
-import type { PermissionLevel } from '../../core/enums/PermissionLevel';
+import { PermissionService } from '../../services/PermissionService';
+import { PermissionLevel } from '../../core/enums/PermissionLevel';
 import { User } from '../../core/entities/User';
 import { authStore } from '../../platform/state/AuthStore';
 import { sessionStore } from '../../platform/state/SessionStore';

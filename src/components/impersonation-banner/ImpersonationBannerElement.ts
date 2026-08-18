@@ -33,6 +33,8 @@ import { injectStyles, injectGlobalTokens } from '../../platform/component/Shado
 import { html } from '../../platform/rendering/SafeHtml';
 import { sessionStore } from '../../platform/state/SessionStore';
 import { impersonationService } from '../../services';
+import { authStore } from '../../platform/state/AuthStore';
+import { navigate } from '../../utils/navigate';
 
 const STYLES = `
   :host {
@@ -96,13 +98,18 @@ class ImpersonationBannerElement extends BaseComponent {
     this.shadow.removeEventListener('click', this.handleClick);
   }
 
-  private handleClick = (event: Event): void => {
+  private handleClick = async (event: Event): Promise<void> => {
     const target = event.target as HTMLElement;
     const actionEl = target.closest('[data-action]');
     if (!actionEl) return;
     if (actionEl.getAttribute('data-action') === 'exit') {
       impersonationService.endImpersonation();
       this.emit('impersonation-exit', {});
+      // Navigate back to the acting user's own dashboard via the SPA router.
+      // A full reload here would wipe the in-memory stores (auth + session).
+      const user = authStore.getState().currentUser;
+      const path = user?.role === 'super-admin' ? '/super-admin/overview' : '/admin/overview';
+      navigate(path);
     }
   };
 

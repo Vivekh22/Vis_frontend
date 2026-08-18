@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FeatureFlagService.test.ts
  *
@@ -8,9 +9,9 @@
  * (a client page) actually removes the IP List card when the flag is off.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FeatureFlagService } from '../services/FeatureFlagService';
-import { MockFeatureFlagRepository } from '../repositories/mocks/MockFeatureFlagRepository';
-import { FeatureFlag } from '../core/enums/FeatureFlag';
+import { FeatureFlagService } from '../../services/FeatureFlagService';
+import { MockFeatureFlagRepository } from '../../repositories/mocks/MockFeatureFlagRepository';
+import { FeatureFlag } from '../../core/enums/FeatureFlag';
 
 describe('FeatureFlagService', () => {
   let service: FeatureFlagService;

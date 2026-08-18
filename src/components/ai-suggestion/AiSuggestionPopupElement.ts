@@ -34,6 +34,7 @@ import { injectStyles, injectGlobalTokens } from '../../platform/component/Shado
 import { html, SafeHtmlString, escapeHtml } from '../../platform/rendering/SafeHtml';
 import { suggestionService } from '../../services';
 import type { Suggestion, ChatMessage } from '../../services/SuggestionService';
+import '../modal/ModalElement';
 
 const STYLES = `
   :host { display: contents; }

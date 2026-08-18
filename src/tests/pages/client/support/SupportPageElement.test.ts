@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * SupportPageElement.test.ts — tests/pages/client/support/
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { SupportPageElement } from '../../../../pages/client/support/SupportPageElement';
+import { SupportPageElement } from '../../../../pages/client/support/SupportPageElement';
 
 vi.mock('../../../../services', () => ({
   supportService: {

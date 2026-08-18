@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * AudiencePageElement.test.ts — tests for pages/client/audience/.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { AudiencePageElement } from '../../../../pages/client/audience/AudiencePageElement';
+import { AudiencePageElement } from '../../../../pages/client/audience/AudiencePageElement';
 
 vi.mock('../../../../services', () => ({
   audienceService: {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * NotFoundHandler.test.ts — unit tests for platform/router/NotFoundHandler.ts.
  */

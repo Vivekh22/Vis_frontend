@@ -20,7 +20,7 @@ import { ApiClient } from './ApiClient';
 
 interface DashboardDataDto {
   kpiValues: Record<string, number>;
-  chartData: { label: string; value: number }[];
+  chartData: { date: string; value: number }[];
 }
 
 export class DashboardRepositoryImpl implements DashboardRepository {
@@ -32,7 +32,7 @@ export class DashboardRepositoryImpl implements DashboardRepository {
       end: period.end.toISOString(),
     });
     const dto = await this.api.get<DashboardDataDto>(`/api/dashboard/summary?${params.toString()}`);
-    return { kpiValues: dto.kpiValues, chartData: dto.chartData };
+    return { kpiValues: dto.kpiValues, chartData: dto.chartData.map(d => ({ date: new Date(d.date), value: d.value })) };
   }
 
   async fetchPreviousPeriodData(period: { start: Date; end: Date }): Promise<Record<string, number>> {

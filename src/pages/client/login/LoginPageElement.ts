@@ -29,6 +29,7 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { isNotEmpty, isValidEmail } from '../../../utils/validators';
 import { navigate } from '../../../utils/navigate';
 import { authService } from '../../../services';
+import '../../../components/form-fields/TextFieldElement';
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); max-width: 400px; margin: 0 auto; padding: var(--space-10) var(--space-4); }
@@ -100,6 +101,17 @@ class LoginPageElement extends BaseComponent {
     if (fieldName === 'email') this.email = value;
     else if (fieldName === 'password') this.password = value;
     else if (fieldName === 'forgotEmail') this.forgotEmail = value;
+
+    if (this.loginError) {
+      this.loginError = null;
+      const errorEl = this.shadow.querySelector('.error-banner');
+      if (errorEl) errorEl.remove();
+    }
+
+    const loginBtn = this.shadow.querySelector<HTMLButtonElement>('[data-action="login"]');
+    if (loginBtn) {
+      loginBtn.disabled = !(this.isValid() && !this.isSubmitting);
+    }
   };
 
   private handleInput = (event: Event): void => {
@@ -119,8 +131,16 @@ class LoginPageElement extends BaseComponent {
       this.rerender();
     } else if (target.closest('[data-action="send-reset"]')) {
       this.handleForgotPassword();
+    } else if (target.closest('[data-action="dev-bypass"]')) {
+      void this.handleDevBypass();
     }
   };
+
+  private async handleDevBypass(): Promise<void> {
+    this.email = 'superadmin@vispriscaads.com';
+    this.password = 'dev-bypass';
+    await this.handleLogin();
+  }
 
   private async handleLogin(): Promise<void> {
     if (!this.isValid() || this.isSubmitting) return;
@@ -164,6 +184,15 @@ class LoginPageElement extends BaseComponent {
     return html`
       <h1 class="login-title">Welcome Back</h1>
       <p class="login-subtitle">Log in to your VispriscaAds account.</p>
+      
+      <!-- DEV-ONLY BYPASS -->
+      <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px;">
+        <strong style="color: #664d03; display: block; margin-bottom: 8px;">[DEV-ONLY] Quick Login Bypass</strong>
+        <button type="button" data-action="dev-bypass" class="login-btn" style="background: #000; color: #fff; width: 100%;">
+          Log in directly as Super Admin
+        </button>
+      </div>
+
       <div class="field-group">
         ${SafeHtmlString.trusted(fieldHtml('email', 'Email or User ID'))}
         ${SafeHtmlString.trusted(fieldHtml('password', 'Password'))}
@@ -179,7 +208,7 @@ class LoginPageElement extends BaseComponent {
           ${this.isSubmitting ? 'Logging in...' : 'Login'}
         </button>
       </div>
-      <p class="register-link">Don't have an account? <a href="/register" data-router-link>Register</a></p>
+
       ${this.showForgotPanel ? SafeHtmlString.trusted(`
         <div class="forgot-panel">
           ${this.forgotSent

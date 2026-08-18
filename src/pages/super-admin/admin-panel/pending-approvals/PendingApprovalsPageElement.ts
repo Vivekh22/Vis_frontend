@@ -13,6 +13,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html } from '../../../../platform/rendering/SafeHtml';
 import { approvalService } from '../../../../services';
 import type { ApprovalQueueItem } from '../../../../components/approval-queue/ApprovalQueueElement';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

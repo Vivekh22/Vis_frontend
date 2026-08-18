@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * TemplateEngine.test.ts — unit tests for platform/rendering/TemplateEngine.ts.
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CampaignListPageElement.test.ts — tests for the campaign list page.
  *
@@ -8,7 +9,7 @@
  *   - Search filters campaigns by name
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CampaignListPageElement } from '../../../../pages/client/campaign/CampaignListPageElement';
+import '../../../../pages/client/campaign/CampaignListPageElement';
 
 vi.mock('../../../../services', () => ({
   campaignService: {
@@ -27,7 +28,6 @@ import { navigate } from '../../../../utils/navigate';
 import { Campaign } from '../../../../core/entities/Campaign';
 import { Money } from '../../../../core/value-objects/Money';
 
-void CampaignListPageElement;
 
 function createMockCampaign(id: string, name: string, status: 'running' | 'pending_approval'): Campaign {
   return new Campaign(

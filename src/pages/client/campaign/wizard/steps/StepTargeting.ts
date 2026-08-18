@@ -185,18 +185,40 @@ class StepTargeting extends BaseComponent implements StepComponent {
   }
 
   private renderCards(d: CampaignFormData): string {
-    const cards: { field: keyof CampaignFormData; title: string; placeholder: string }[] = [
-      { field: 'appWhitelist', title: 'App List (Whitelist/Blacklist)', placeholder: 'Enter App IDs...' },
-      { field: 'audienceList', title: 'Audience List', placeholder: 'Enter Audience IDs...' },
+    const listTypes: { key: string; title: string; placeholder: string; whiteField: keyof CampaignFormData; blackField: keyof CampaignFormData }[] = [
+      { key: 'app', title: 'App List', placeholder: 'Enter App IDs...', whiteField: 'appWhitelist', blackField: 'appBlacklist' },
+      { key: 'audience', title: 'Audience List', placeholder: 'Enter Audience IDs...', whiteField: 'audienceWhitelist', blackField: 'audienceBlacklist' },
     ];
-    // IP List card is ONLY rendered when IP-Based Frequency Capping is enabled.
-    // When disabled, the card is FULLY ABSENT — not shown-but-locked.
     if (this._ipFreqCappingEnabled) {
-      cards.push({ field: 'ipList', title: 'IP List', placeholder: 'Enter IPs...' });
+      listTypes.push({ key: 'ip', title: 'IP List', placeholder: 'Enter IPs...', whiteField: 'ipWhitelist', blackField: 'ipBlacklist' });
     }
-    return cards.map((c) => {
-      const val = d[c.field] as string;
-      return `<div class="card"><p class="card-title">${c.title}</p><input type="text" class="field-input" data-field="${c.field}" value="${val}" placeholder="${c.placeholder}"><p class="card-note">Free-text entry — cross-referencing arrives in Part 9.</p></div>`;
+
+    return listTypes.map((c) => {
+      const wVal = (d[c.whiteField] as string) || '';
+      const bVal = (d[c.blackField] as string) || '';
+      
+      const wItems = wVal.split(',').map(s => s.trim()).filter(Boolean);
+      const bItems = bVal.split(',').map(s => s.trim()).filter(Boolean);
+      const conflicts = wItems.filter(item => bItems.includes(item));
+      const hasConflict = conflicts.length > 0;
+      
+      return `
+        <div class="card ${hasConflict ? 'conflict' : ''}">
+          <p class="card-title">${c.title}</p>
+          <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
+            <div class="field" style="flex: 1;">
+              <label class="field-label" style="font-size: var(--font-size-xs);">Whitelist</label>
+              <input type="text" class="field-input" data-field="${String(c.whiteField)}" value="${wVal}" placeholder="${c.placeholder}">
+            </div>
+            <div class="field" style="flex: 1;">
+              <label class="field-label" style="font-size: var(--font-size-xs);">Blacklist</label>
+              <input type="text" class="field-input" data-field="${String(c.blackField)}" value="${bVal}" placeholder="${c.placeholder}">
+            </div>
+          </div>
+          ${hasConflict ? `<p class="conflict-warning" style="color: var(--color-danger); font-size: var(--font-size-xs); margin: 0 0 var(--space-2); display: flex; align-items: center; gap: 4px;">⚠️ Conflict detected: ${conflicts.join(', ')}</p>` : ''}
+          <p class="card-note">Free-text entry (comma separated) — cross-referencing arrives in Part 9.</p>
+        </div>
+      `;
     }).join('');
   }
 }

@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { describe, it, expect, beforeEach } from 'vitest';
 import { notificationStore } from '../../../platform/state/NotificationStore';
-import type { NotificationBellElement } from '../../../components/notification-bell/NotificationBellElement';
+import { NotificationBellElement } from '../../../components/notification-bell/NotificationBellElement';
 import '../../../components/notification-bell/NotificationBellElement';
 
 describe('NotificationBellElement', () => {

@@ -16,16 +16,20 @@ import { injectStyles, injectGlobalTokens } from '../../../platform/component/Sh
 import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { invoiceService } from '../../../services';
 import type { Invoice } from '../../../core/entities/Invoice';
+import '../../../components/invoice-print-view/InvoicePrintViewElement';
+import '../../../components/loading-state/LoadingStateElement';
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6); }
-  .summary-bar { display: flex; gap: var(--space-6); margin-bottom: var(--space-6); }
+  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); padding-bottom: var(--space-6); }
+  .summary-bar { display: flex; gap: var(--space-6); padding-bottom: var(--space-6); }
   .summary-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); flex: 1; }
-  .summary-label { font-size: var(--font-size-xs); text-transform: uppercase; color: var(--color-text-muted); margin: 0 0 var(--space-1); }
+  .summary-label { font-size: var(--font-size-xs); text-transform: uppercase; color: var(--color-text-muted); padding-bottom: var(--space-1); }
   .summary-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); }
-  .statement-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-6); }
-  .section-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-3); }
+  .statement-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); padding-bottom: var(--space-6); }
+  .section-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); padding-bottom: var(--space-3); }
   .statement-form { display: flex; gap: var(--space-3); align-items: flex-end; flex-wrap: wrap; }
   .date-input { padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-sm); }
   .btn { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-sm); font-family: var(--font-body); color: var(--color-text-primary); }
@@ -39,7 +43,7 @@ const STYLES = `
   .status-draft { color: var(--color-text-muted); font-weight: var(--font-weight-semibold); }
   .status-void { color: var(--color-text-muted); font-weight: var(--font-weight-semibold); }
   .invoice-table-container { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
-  .print-view-container { margin-top: var(--space-6); }
+  .print-view-container { padding-top: var(--space-6); }
 `;
 
 class InvoicesBillingPageElement extends BaseComponent {

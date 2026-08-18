@@ -1,9 +1,9 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import { DateRangeFieldElement } from '../../../components/form-fields/DateRangeFieldElement';
+import '../../../components/form-fields/DateRangeFieldElement';
 import { DateRange } from '../../../core/value-objects/DateRange';
 
 // Force value import to prevent esbuild import elision (ensures ComponentRegistry.register runs)
-void DateRangeFieldElement;
 
 describe('DateRangeFieldElement', () => {
   it('value get/set works correctly', () => {

@@ -12,6 +12,7 @@ import { html, SafeHtmlString } from '../../../../../platform/rendering/SafeHtml
 import type { StepComponent } from '../campaign-wizard-types';
 import type { CampaignFormData } from '../campaign-wizard-types';
 import { isNotEmpty } from '../../../../../utils/validators';
+import '../../../../../components/scheduling-grid/SchedulingGridElement';
 
 interface SchedulingGridHost extends HTMLElement {
   grid: boolean[][];
@@ -69,13 +70,31 @@ class StepCampaignInfo extends BaseComponent implements StepComponent {
 
   protected onMount(): void {
     this.shadow.addEventListener('change', this.handleChange);
+    this.shadow.addEventListener('click', this.handleClick);
     this.shadow.addEventListener('schedule-changed', this.handleScheduleChanged);
   }
 
   protected onUnmount(): void {
     this.shadow.removeEventListener('change', this.handleChange);
+    this.shadow.removeEventListener('click', this.handleClick);
     this.shadow.removeEventListener('schedule-changed', this.handleScheduleChanged);
   }
+
+  private handleClick = (event: Event): void => {
+    const target = event.target as HTMLElement;
+    const card = target.closest('[data-schedule-toggle]');
+    if (!card || !this._data) return;
+    const toggleType = card.getAttribute('data-schedule-toggle');
+    const runAllTime = toggleType === 'all-time';
+    if (this._data.runAllTime !== runAllTime) {
+      const newData = { ...this._data, runAllTime };
+      this._data = newData;
+      this.emitDataChanged(newData);
+      this.emitValidity(this.isValid(newData));
+      this.rerender();
+      this.syncGrid();
+    }
+  };
 
   private handleChange = (event: Event): void => {
     const target = event.target as HTMLElement;

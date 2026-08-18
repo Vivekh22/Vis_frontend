@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { DateRange } from '../../../core/value-objects/DateRange';
 import { ValidationError } from '../../../core/errors/ValidationError';

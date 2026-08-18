@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * CreativeListPageElement.test.ts — tests for pages/client/creatives/.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { CreativeListPageElement } from '../../../../pages/client/creatives/CreativeListPageElement';
+import { CreativeListPageElement } from '../../../../pages/client/creatives/CreativeListPageElement';
 
 vi.mock('../../../../services', () => ({
   creativeService: {

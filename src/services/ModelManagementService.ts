@@ -12,6 +12,10 @@
  *   accepts a mandatory note (enforced by MandatoryNoteDialogElement in
  *   the UI). The underlying call is mocked but the UI flow is real.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 export type ModelDeploymentStatus = 'deployed' | 'canary' | 'idle' | 'failed';
 export type DriftAlertStatus = 'none' | 'warning' | 'critical';
 

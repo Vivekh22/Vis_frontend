@@ -17,6 +17,8 @@ import { ComponentRegistry } from '../../../../platform/component/ComponentRegis
 import { injectStyles, injectGlobalTokens } from '../../../../platform/component/ShadowRenderMixin';
 import { html } from '../../../../platform/rendering/SafeHtml';
 import { platformSettingsService } from '../../../../services';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

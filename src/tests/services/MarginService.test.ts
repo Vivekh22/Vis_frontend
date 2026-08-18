@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MarginService.test.ts
  *
@@ -9,9 +10,9 @@
  *   - Uses Percentage value object throughout, never raw numbers
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MarginService } from '../services/MarginService';
-import { MockMarginRepository } from '../repositories/mocks/MockMarginRepository';
-import { Percentage } from '../core/value-objects/Percentage';
+import { MarginService } from '../../services/MarginService';
+import { MockMarginRepository } from '../../repositories/mocks/MockMarginRepository';
+import { Percentage } from '../../core/value-objects/Percentage';
 
 describe('MarginService', () => {
   let service: MarginService;

@@ -30,6 +30,7 @@ import { BaseComponent } from '../../platform/component/BaseComponent';
 import { ComponentRegistry } from '../../platform/component/ComponentRegistry';
 import { injectStyles, injectGlobalTokens } from '../../platform/component/ShadowRenderMixin';
 import { html } from '../../platform/rendering/SafeHtml';
+import '../modal/ModalElement';
 
 const MIN_NOTE_LENGTH = 10;
 
@@ -140,6 +141,7 @@ class MandatoryNoteDialogElement extends BaseComponent {
     }
     this.context = null;
     this.currentNote = '';
+    this.rerender();
   }
 
   protected onMount(): void {

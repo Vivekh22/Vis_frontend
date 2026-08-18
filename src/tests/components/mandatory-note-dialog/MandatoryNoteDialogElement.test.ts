@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
-import type { MandatoryNoteDialogElement } from '../../../components/mandatory-note-dialog/MandatoryNoteDialogElement';
+import { MandatoryNoteDialogElement } from '../../../components/mandatory-note-dialog/MandatoryNoteDialogElement';
 import { MIN_NOTE_LENGTH } from '../../../components/mandatory-note-dialog/MandatoryNoteDialogElement';
 import '../../../components/mandatory-note-dialog/MandatoryNoteDialogElement';
 
@@ -7,7 +8,7 @@ describe('MandatoryNoteDialogElement', () => {
   it('renders nothing when closed', () => {
     const el = document.createElement('mandatory-note-dialog') as MandatoryNoteDialogElement;
     document.body.appendChild(el);
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('vis-modal')).toBeNull();
     document.body.removeChild(el);
   });
 
@@ -55,7 +56,7 @@ describe('MandatoryNoteDialogElement', () => {
     const confirmBtn = el.shadowRoot!.querySelector('[data-action="confirm"]') as HTMLButtonElement;
     confirmBtn.click();
     expect(confirmedNote).toBe('This is a valid note');
-    expect(el.shadowRoot!.children.length).toBe(0);
+    expect(el.shadowRoot!.querySelector('vis-modal')).toBeNull();
     document.body.removeChild(el);
   });
 

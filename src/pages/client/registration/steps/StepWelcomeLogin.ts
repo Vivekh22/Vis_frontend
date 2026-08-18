@@ -26,6 +26,8 @@ import { isNotEmpty, isValidEmail } from '../../../../utils/validators';
 import { navigate } from '../../../../utils/navigate';
 import { authService } from '../../../../services';
 import type { RegistrationFormData, StepComponent } from '../registration-types';
+import '../../../../components/form-fields/TextFieldElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

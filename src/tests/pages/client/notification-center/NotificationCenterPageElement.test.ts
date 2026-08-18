@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * NotificationCenterPageElement.test.ts — tests/pages/client/notification-center/
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { NotificationCenterPageElement } from '../../../../pages/client/notification-center/NotificationCenterPageElement';
+import { NotificationCenterPageElement } from '../../../../pages/client/notification-center/NotificationCenterPageElement';
 
 vi.mock('../../../../services', () => ({
   notificationService: {

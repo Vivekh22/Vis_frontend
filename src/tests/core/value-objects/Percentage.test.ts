@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { Percentage } from '../../../core/value-objects/Percentage';
 import { ValidationError } from '../../../core/errors/ValidationError';

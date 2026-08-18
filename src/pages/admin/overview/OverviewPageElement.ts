@@ -18,6 +18,14 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { dashboardService, approvalService, clientService } from '../../../services';
 import { authStore } from '../../../platform/state/AuthStore';
 import type { ClientSummary } from '../../../core/types/ClientSummary';
+import '../../../components/approval-queue/ApprovalQueueElement';
+import '../../../components/chart-widget/ChartWidgetElement';
+import '../../../components/empty-state/EmptyStateElement';
+import '../../../components/loading-state/LoadingStateElement';
+
+
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

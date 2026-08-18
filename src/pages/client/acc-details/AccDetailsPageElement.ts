@@ -21,6 +21,10 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { teamService } from '../../../services';
 import type { TeamMember } from '../../../core/entities/TeamMember';
 import { formatBankField } from '../../../utils/bankFieldMask';
+import '../../../components/loading-state/LoadingStateElement';
+import '../../../components/team-members-table/TeamMembersTableElement';
+
+
 
 const TABS = ['bank', 'company', 'address', 'reg', 'team', 'history'] as const;
 type Tab = (typeof TABS)[number];

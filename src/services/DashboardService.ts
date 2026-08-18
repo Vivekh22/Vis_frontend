@@ -22,10 +22,11 @@ import type { DateRange } from '../core/value-objects/DateRange';
 
 export interface DashboardKpiData {
   kpiValues: Record<string, number>;
-  chartData: { label: string; value: number }[];
+  chartData: { date: Date; value: number }[];
 }
 
-export interface DashboardSummary extends DashboardKpiData {
+export interface DashboardSummary extends Omit<DashboardKpiData, 'chartData'> {
+  chartData: { label: string; value: number }[];
   previousKpiValues: Record<string, number>;
   insight: string;
   deltas: Record<string, { value: number; direction: 'up' | 'down' | 'flat' }>;
@@ -52,22 +53,56 @@ export interface DashboardRepository {
 export class DashboardService {
   constructor(private readonly dashboardRepo: DashboardRepository) {}
 
-  async getDashboardSummary(period: DateRange): Promise<DashboardSummary> {
+  async getDashboardSummary(period: DateRange, selectedMetrics: string[] = []): Promise<DashboardSummary> {
     const [currentData, previousKpiValues] = await Promise.all([
       this.dashboardRepo.fetchDashboardData(period),
       this.dashboardRepo.fetchPreviousPeriodData(period),
     ]);
 
     const deltas = this.computeDeltas(currentData.kpiValues, previousKpiValues);
-    const insight = this.generateInsight(currentData.kpiValues, previousKpiValues, deltas);
+    
+    // Filter deltas to only include selected metrics for insight generation
+    const relevantDeltas = Object.fromEntries(
+      Object.entries(deltas).filter(([key]) => selectedMetrics.length === 0 || selectedMetrics.includes(key))
+    );
+    const insight = this.generateInsight(currentData.kpiValues, previousKpiValues, relevantDeltas);
+    
+    const formattedChartData = this.formatChartData(currentData.chartData, period);
 
     return {
       kpiValues: currentData.kpiValues,
-      chartData: currentData.chartData,
+      chartData: formattedChartData,
       previousKpiValues,
       insight,
       deltas,
     };
+  }
+
+  private formatChartData(data: { date: Date | string; value: number }[], period: DateRange): { label: string; value: number }[] {
+    const dayDiff = Math.max(1, Math.round((period.end.getTime() - period.start.getTime()) / 86400000));
+    
+    return data.map(point => {
+      let label = '';
+      const d = new Date(point.date);
+      if (dayDiff <= 2) {
+        // Today / Yesterday -> hourly (e.g. "12 AM", "1 AM")
+        const hours = d.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const h = hours % 12 || 12;
+        label = `${h} ${ampm}`;
+      } else if (dayDiff <= 7) {
+        // 7D -> day of week (e.g. "Sun", "Mon")
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        label = days[d.getDay()] as string;
+      } else {
+        // > 7D -> date labels
+        // Label thinning can be handled here or in the chart. We will format as MM/DD.
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        label = `${month}/${day}`;
+      }
+      return { label, value: point.value };
+    });
   }
 
   async getAdminWorkload(): Promise<AdminWorkloadEntry[]> {

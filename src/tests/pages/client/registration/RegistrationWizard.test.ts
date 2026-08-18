@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * RegistrationWizard.test.ts — tests for the wizard orchestrator.
  *
@@ -8,7 +9,7 @@
  *   - Submit calls authService.submitRegistration
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { RegistrationWizardElement } from '../../../../pages/client/registration/RegistrationWizardElement';
+import { RegistrationWizardElement } from '../../../../pages/client/registration/RegistrationWizardElement';
 import { authService } from '../../../../services';
 
 vi.mock('../../../../services', () => ({

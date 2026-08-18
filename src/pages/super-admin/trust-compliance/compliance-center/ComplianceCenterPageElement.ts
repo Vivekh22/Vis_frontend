@@ -17,6 +17,8 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { complianceService } from '../../../../services';
 import type { ComplianceRegulation, ConsentStats, DsarRequest } from '../../../../services/ComplianceService';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

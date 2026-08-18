@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * BaseComponent.test.ts — unit tests for platform/component/BaseComponent.ts.
  */

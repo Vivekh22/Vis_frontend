@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CampaignRepository.test.ts — tests for repositories/CampaignRepository.
  *

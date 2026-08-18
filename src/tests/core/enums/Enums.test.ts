@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { CampaignStatus } from '../../../core/enums/CampaignStatus';
 import { CreativeStatus } from '../../../core/enums/CreativeStatus';

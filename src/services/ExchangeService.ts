@@ -10,6 +10,10 @@
  * can delegate exchange management to Admins. The Role & Permission
  * Builder's grid has this row permanently greyed out.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 import { ExchangeConfig, type ExchangeStatus } from '../core/entities/ExchangeConfig';
 
 export interface ExchangeRepository {

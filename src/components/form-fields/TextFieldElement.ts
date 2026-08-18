@@ -49,6 +49,23 @@ class TextFieldElement extends BaseComponent {
   protected onMount(): void { this.shadow.addEventListener('input', this.handleInput); }
   protected onUnmount(): void { this.shadow.removeEventListener('input', this.handleInput); }
 
+  static get observedAttributes() {
+    return ['label', 'value', 'input-type'];
+  }
+
+  attributeChangedCallback(name: string, _oldVal: string, newVal: string): void {
+    if (name === 'label') {
+      this._label = newVal;
+      this.rerender();
+    } else if (name === 'value') {
+      this._value = newVal;
+      this.rerender();
+    } else if (name === 'input-type') {
+      this._inputType = (newVal === 'password' ? 'password' : 'text');
+      this.rerender();
+    }
+  }
+
   private handleInput = (event: Event): void => {
     const target = event.target as HTMLElement;
     if (target.getAttribute('data-field') === 'text') {

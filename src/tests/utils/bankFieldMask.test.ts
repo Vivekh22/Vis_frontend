@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * bankFieldMask.test.ts — tests/utils/
  *

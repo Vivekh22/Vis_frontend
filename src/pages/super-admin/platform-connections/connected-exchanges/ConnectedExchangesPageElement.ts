@@ -21,6 +21,10 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { platformConnectionService } from '../../../../services';
 import type { ConnectedExchange } from '../../../../services/PlatformConnectionService';
+import '../../../../components/chart-widget/ChartWidgetElement';
+import '../../../../components/loading-state/LoadingStateElement';
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

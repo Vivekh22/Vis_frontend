@@ -1,0 +1,106 @@
+﻿
+> visprisca-ads-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(16,31): error TS2307: Cannot find module '../../../../platform/component/BaseComponent' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(17,35): error TS2307: Cannot find module '../../../../platform/component/ComponentRegistry' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(18,50): error TS2307: Cannot find module '../../../../platform/component/ShadowRenderMixin' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(19,22): error TS2307: Cannot find module '../../../../platform/rendering/SafeHtml' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(20,31): error TS2307: Cannot find module '../../../../services' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(21,27): error TS2307: Cannot find module '../../../../platform/state/AuthStore' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(22,39): error TS2307: Cannot find module '../../../../components/activity-log/ActivityLogElement' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(39,29): error TS2339: Property 'shadow' does not exist on type 'AdminActivityLogPageElement'.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(40,23): error TS2339: Property 'shadow' does not exist on type 'AdminActivityLogPageElement'.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(49,10): error TS2339: Property 'rerender' does not exist on type 'AdminActivityLogPageElement'.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(52,13): error TS6133: 'clientIds' is declared but its value is never read.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(56,24): error TS2339: Property 'shadow' does not exist on type 'AdminActivityLogPageElement'.
+src/pages/admin/approvals-oversight/AdminActivityLogPageElement.ts(65,10): error TS2339: Property 'rerender' does not exist on type 'AdminActivityLogPageElement'.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(9,31): error TS2307: Cannot find module '../../../../platform/component/BaseComponent' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(10,35): error TS2307: Cannot find module '../../../../platform/component/ComponentRegistry' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(11,50): error TS2307: Cannot find module '../../../../platform/component/ShadowRenderMixin' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(12,22): error TS2307: Cannot find module '../../../../platform/rendering/SafeHtml' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(13,33): error TS2307: Cannot find module '../../../../services' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(14,27): error TS2307: Cannot find module '../../../../platform/state/AuthStore' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(15,40): error TS2307: Cannot find module '../../../../components/approval-queue/ApprovalQueueElement' or its corresponding type declarations.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(31,29): error TS2339: Property 'shadow' does not exist on type 'AdminApprovalsPageElement'.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(32,23): error TS2339: Property 'shadow' does not exist on type 'AdminApprovalsPageElement'.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(41,10): error TS2339: Property 'rerender' does not exist on type 'AdminApprovalsPageElement'.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(46,26): error TS2339: Property 'shadow' does not exist on type 'AdminApprovalsPageElement'.
+src/pages/admin/approvals-oversight/AdminApprovalsPageElement.ts(54,10): error TS2339: Property 'rerender' does not exist on type 'AdminApprovalsPageElement'.
+src/pages/admin/overview/OverviewPageElement.ts(18,28): error TS6133: 'approvalService' is declared but its value is never read.
+src/pages/admin/overview/OverviewPageElement.ts(162,15): error TS6133: 'avgTurnaheadHours' is declared but its value is never read.
+src/pages/admin/support/AdminSupportPageElement.ts(15,31): error TS2307: Cannot find module '../../../../platform/component/BaseComponent' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(16,35): error TS2307: Cannot find module '../../../../platform/component/ComponentRegistry' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(17,50): error TS2307: Cannot find module '../../../../platform/component/ShadowRenderMixin' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(18,38): error TS2307: Cannot find module '../../../../platform/rendering/SafeHtml' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(19,32): error TS2307: Cannot find module '../../../../services' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(20,1): error TS6133: 'authStore' is declared but its value is never read.
+src/pages/admin/support/AdminSupportPageElement.ts(20,27): error TS2307: Cannot find module '../../../../platform/state/AuthStore' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(21,36): error TS2307: Cannot find module '../../../../core/entities/SupportTicket' or its corresponding type declarations.
+src/pages/admin/support/AdminSupportPageElement.ts(62,29): error TS2339: Property 'shadow' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(63,23): error TS2339: Property 'shadow' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(67,10): error TS2339: Property 'shadow' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(72,10): error TS2339: Property 'shadow' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(77,10): error TS2339: Property 'rerender' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(87,10): error TS2339: Property 'rerender' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(96,12): error TS2339: Property 'rerender' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(101,12): error TS2339: Property 'rerender' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(121,10): error TS2339: Property 'rerender' does not exist on type 'AdminSupportPageElement'.
+src/pages/admin/support/AdminSupportPageElement.ts(167,38): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/pages/client/acc-details/AccDetailsPageElement.ts(56,11): error TS6133: 'teamMembers' is declared but its value is never read.
+src/pages/super-admin/overview/OverviewPageElement.ts(27,16): error TS6133: 'SafeHtmlString' is declared but its value is never read.
+src/pages/super-admin/taranga-governance/model-management/ModelManagementPageElement.ts(49,11): error TS6133: 'noteDialog' is declared but its value is never read.
+src/repositories/mocks/MockRegistrationRepository.ts(68,38): error TS6133: 'registration' is declared but its value is never read.
+src/services/ApprovalService.ts(85,20): error TS2339: Property 'type' does not exist on type 'ApprovalItem'.
+src/services/ApprovalService.ts(86,22): error TS2339: Property 'clientName' does not exist on type 'ApprovalItem'.
+src/services/ApprovalService.ts(89,27): error TS2339: Property 'slaDeadline' does not exist on type 'ApprovalItem'.
+src/services/ApprovalService.ts(90,35): error TS2345: Argument of type 'ApprovalItem' is not assignable to parameter of type 'SlaCheckable'.
+  Property 'slaDeadline' is missing in type 'ApprovalItem' but required in type 'SlaCheckable'.
+src/services/ApprovalService.ts(91,23): error TS2339: Property 'summary' does not exist on type 'ApprovalItem'.
+src/tests/pages/client/campaign/wizard/CampaignWizard.test.ts(35,19): error TS1361: 'CampaignWizardElement' cannot be used as a value because it was imported using 'import type'.
+src/tests/pages/client/login/LoginPage.test.ts(38,19): error TS1361: 'LoginPageElement' cannot be used as a value because it was imported using 'import type'.
+src/tests/pages/client/registration/RegistrationStatusPage.test.ts(35,25): error TS1361: 'RegistrationStatusPageElement' cannot be used as a value because it was imported using 'import type'.
+src/tests/pages/client/registration/RegistrationWizard.test.ts(33,19): error TS1361: 'RegistrationWizardElement' cannot be used as a value because it was imported using 'import type'.
+src/tests/pages/super-admin/platform-connections/ConnectedPublishersPlaceholders.test.ts(43,7): error TS2307: Cannot find module '../../repositories/mocks/MockPlatformConnectionRepository' or its corresponding type declarations.
+src/tests/pages/super-admin/platform-connections/ConnectedPublishersPlaceholders.test.ts(46,7): error TS2307: Cannot find module '../../services/PlatformConnectionService' or its corresponding type declarations.
+src/tests/services/ApprovalServiceSlaRetrofit.test.ts(15,33): error TS2307: Cannot find module '../services/ApprovalService' or its corresponding type declarations.
+src/tests/services/ApprovalServiceSlaRetrofit.test.ts(16,40): error TS2307: Cannot find module '../repositories/mocks/MockApprovalRepository' or its corresponding type declarations.
+src/tests/services/ApprovalServiceSlaRetrofit.test.ts(17,41): error TS2307: Cannot find module '../services/PlatformSettingsService' or its corresponding type declarations.
+src/tests/services/ApprovalServiceSlaRetrofit.test.ts(18,48): error TS2307: Cannot find module '../repositories/mocks/MockPlatformSettingsRepository' or its corresponding type declarations.
+src/tests/services/ApprovalServiceSlaRetrofit.test.ts(19,35): error TS2307: Cannot find module '../services/ApprovalService' or its corresponding type declarations.
+src/tests/services/ExchangeService.test.ts(8,33): error TS2307: Cannot find module '../services/ExchangeService' or its corresponding type declarations.
+src/tests/services/ExchangeService.test.ts(9,40): error TS2307: Cannot find module '../repositories/mocks/MockExchangeRepository' or its corresponding type declarations.
+src/tests/services/ExchangeService.test.ts(28,35): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/tests/services/ExchangeService.test.ts(35,33): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/tests/services/ExchangeService.test.ts(42,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/tests/services/ExchangeService.test.ts(49,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/tests/services/ExchangeService.test.ts(56,33): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/tests/services/ExchangeSingleSourceOfTruth.test.ts(18,11): error TS6133: 'exchangeRepo' is declared but its value is never read.
+src/tests/services/FeatureFlagService.test.ts(11,36): error TS2307: Cannot find module '../services/FeatureFlagService' or its corresponding type declarations.
+src/tests/services/FeatureFlagService.test.ts(12,43): error TS2307: Cannot find module '../repositories/mocks/MockFeatureFlagRepository' or its corresponding type declarations.
+src/tests/services/FeatureFlagService.test.ts(13,29): error TS2307: Cannot find module '../core/enums/FeatureFlag' or its corresponding type declarations.
+src/tests/services/FeatureGatingIntegration.test.ts(14,44): error TS6133: 'vi' is declared but its value is never read.
+src/tests/services/FeatureGatingIntegration.test.ts(15,36): error TS2307: Cannot find module '../services/FeatureFlagService' or its corresponding type declarations.
+src/tests/services/FeatureGatingIntegration.test.ts(16,43): error TS2307: Cannot find module '../repositories/mocks/MockFeatureFlagRepository' or its corresponding type declarations.
+src/tests/services/FeatureGatingIntegration.test.ts(17,29): error TS2307: Cannot find module '../core/enums/FeatureFlag' or its corresponding type declarations.
+src/tests/services/MarginDisplayConfirmation.test.ts(16,34): error TS2307: Cannot find module '../services/DashboardService' or its corresponding type declarations.
+src/tests/services/MarginDisplayConfirmation.test.ts(17,41): error TS2307: Cannot find module '../repositories/mocks/MockDashboardRepository' or its corresponding type declarations.
+src/tests/services/MarginDisplayConfirmation.test.ts(18,31): error TS2307: Cannot find module '../services/MarginService' or its corresponding type declarations.
+src/tests/services/MarginDisplayConfirmation.test.ts(19,38): error TS2307: Cannot find module '../repositories/mocks/MockMarginRepository' or its corresponding type declarations.
+src/tests/services/MarginDisplayConfirmation.test.ts(20,28): error TS2307: Cannot find module '../core/value-objects/Percentage' or its corresponding type declarations.
+src/tests/services/MarginService.test.ts(12,31): error TS2307: Cannot find module '../services/MarginService' or its corresponding type declarations.
+src/tests/services/MarginService.test.ts(13,38): error TS2307: Cannot find module '../repositories/mocks/MockMarginRepository' or its corresponding type declarations.
+src/tests/services/MarginService.test.ts(14,28): error TS2307: Cannot find module '../core/value-objects/Percentage' or its corresponding type declarations.
+src/tests/services/MarginService.test.ts(108,50): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/tests/services/PlatformSettingsService.test.ts(11,41): error TS2307: Cannot find module '../services/PlatformSettingsService' or its corresponding type declarations.
+src/tests/services/PlatformSettingsService.test.ts(12,48): error TS2307: Cannot find module '../repositories/mocks/MockPlatformSettingsRepository' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(16,37): error TS2307: Cannot find module '../services/RegistrationService' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(17,44): error TS2307: Cannot find module '../repositories/mocks/MockRegistrationRepository' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(18,41): error TS2307: Cannot find module '../services/PlatformSettingsService' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(19,48): error TS2307: Cannot find module '../repositories/mocks/MockPlatformSettingsRepository' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(20,28): error TS2307: Cannot find module '../core/value-objects/Percentage' or its corresponding type declarations.
+src/tests/services/RegistrationService.test.ts(21,41): error TS2307: Cannot find module '../core/entities/Registration' or its corresponding type declarations.
+src/tests/services/RoleManagementService.test.ts(11,39): error TS2307: Cannot find module '../services/RoleManagementService' or its corresponding type declarations.
+src/tests/services/RoleManagementService.test.ts(12,46): error TS2307: Cannot find module '../repositories/mocks/MockRoleManagementRepository' or its corresponding type declarations.
+src/tests/services/RoleManagementService.test.ts(13,1): error TS6133: 'PermissionGrant' is declared but its value is never read.
+src/tests/services/RoleManagementService.test.ts(13,33): error TS2307: Cannot find module '../core/value-objects/PermissionGrant' or its corresponding type declarations.

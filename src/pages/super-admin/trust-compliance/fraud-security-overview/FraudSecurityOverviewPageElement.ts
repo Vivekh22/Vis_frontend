@@ -12,6 +12,10 @@ import { injectStyles, injectGlobalTokens } from '../../../../platform/component
 import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { fraudSecurityService } from '../../../../services';
 import type { FraudSecuritySummary } from '../../../../services/FraudSecurityService';
+import '../../../../components/empty-state/EmptyStateElement';
+import '../../../../components/loading-state/LoadingStateElement';
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

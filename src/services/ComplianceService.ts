@@ -10,6 +10,10 @@
  *   ApprovalQueueElement in Part 2 — the overdue indicator includes
  *   both a color change AND a text label ("OVERDUE"), not color alone.
  */
+
+// DESIGN NOTE: This service uses a mock repository by design — these are Super Admin
+// monitoring/status/governance pages with no real backend API to call yet. When the
+// backend is ready, swap the mock for a real repository in services/index.ts.
 export type ComplianceRegulationStatus = 'compliant' | 'action_needed' | 'non_compliant';
 
 export interface ComplianceRegulation {

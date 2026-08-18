@@ -175,7 +175,9 @@ class ApprovalQueueElement extends BaseComponent {
   protected onUnmount(): void {
     this.shadow.removeEventListener('click', this.handleClick);
     if (this.dialogEl) {
-      this.dialogEl.remove();
+      if (this.dialogEl.parentNode) {
+        this.dialogEl.remove();
+      }
       this.dialogEl = null;
     }
   }

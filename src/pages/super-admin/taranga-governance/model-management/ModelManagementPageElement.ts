@@ -17,6 +17,8 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { modelManagementService } from '../../../../services';
 import { MandatoryNoteDialogElement } from '../../../../components/mandatory-note-dialog/MandatoryNoteDialogElement';
 import type { ModelDeployment } from '../../../../services/ModelManagementService';
+import '../../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

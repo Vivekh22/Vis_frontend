@@ -19,6 +19,10 @@ import { html, SafeHtmlString } from '../../../../platform/rendering/SafeHtml';
 import { clientService } from '../../../../services';
 import { authStore } from '../../../../platform/state/AuthStore';
 import type { ClientSummary } from '../../../../core/types/ClientSummary';
+import '../../../../components/activity-log/ActivityLogElement';
+import '../../../../components/loading-state/LoadingStateElement';
+
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }

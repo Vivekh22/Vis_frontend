@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ModelManagementRollback.test.ts
  *

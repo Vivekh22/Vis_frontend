@@ -21,6 +21,8 @@ import type { SupportTicket } from '../../../core/entities/SupportTicket';
 import { SupportTicketCategory } from '../../../core/enums/SupportTicketCategory';
 import { SupportTicketPriority } from '../../../core/enums/SupportTicketPriority';
 import type { RichTextFieldElement } from '../../../components/rich-text-field/RichTextFieldElement';
+import '../../../components/loading-state/LoadingStateElement';
+
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }
