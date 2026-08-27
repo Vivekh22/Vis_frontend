@@ -20,25 +20,76 @@ import { campaignService } from '../../../../services';
 import { navigate } from '../../../../utils/navigate';
 import { Money } from '../../../../core/value-objects/Money';
 import { OptimizationGoal } from '../../../../core/enums/OptimizationGoal';
+import { INITIAL_CAMPAIGN_DATA, WIZARD_STEPS } from './campaign-wizard-types';
 import type { CampaignFormData, StepComponent } from './campaign-wizard-types';
 import { ModalElement } from '../../../../components/modal/ModalElement';
 import '../../../../components/modal/ModalElement';
+
+import './steps/StepCampaignInfo';
+import './steps/StepAdDomain';
+import './steps/StepBudgetTargeting';
+import './steps/StepTargeting';
+import './steps/StepReview';
 
 const STEP_TAGS = [
   'step-campaign-info',
   'step-ad-domain',
   'step-budget-targeting',
   'step-targeting',
-  'step-bid-multiplier',
   'step-review',
 ] as const;
 
-// ... styles remain ...
+const STYLES = `
+  :host { display: block; height: 100%; font-family: var(--font-body); }
+  .wizard-container { display: flex; flex-direction: column; height: 100%; max-width: 1200px; margin: 0 auto; padding: var(--space-4); }
+  .wizard-header { margin-bottom: var(--space-6); }
+  .wizard-title { font-size: var(--font-size-2xl); font-weight: bold; margin: 0 0 var(--space-4); color: var(--color-text-primary); }
+  .progress-bar { display: flex; gap: 4px; margin-bottom: var(--space-2); }
+  .progress-step { height: 4px; flex: 1; background: var(--color-border); border-radius: var(--radius-full); }
+  .progress-step.completed { background: var(--color-primary); }
+  .progress-step.active { background: var(--color-primary); opacity: 0.7; }
+  .step-labels { display: flex; justify-content: space-between; }
+  .step-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; }
+  .step-label.active { color: var(--color-primary); font-weight: bold; }
+  .step-label.completed { color: var(--color-text-primary); }
+  
+  .wizard-body { display: flex; gap: var(--space-8); flex: 1; min-height: 500px; }
+  .step-panel { flex: 3; }
+  .preview-panel { flex: 1; min-width: 280px; }
+  
+  .preview-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    position: sticky;
+    top: var(--space-4);
+  }
+  .preview-title { font-weight: bold; margin: 0 0 var(--space-4); font-size: var(--font-size-sm); text-transform: uppercase; }
+  .preview-row { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); font-size: var(--font-size-sm); }
+  .preview-pending { color: var(--color-text-muted); }
+  .preview-check { color: var(--color-text-primary); }
+  .preview-check-icon { color: var(--color-success); font-weight: bold; }
+  .preview-pending-icon { color: var(--color-border); }
+  
+  .wizard-footer { display: flex; justify-content: flex-end; gap: var(--space-4); margin-top: var(--space-8); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+  .nav-btn {
+    padding: var(--space-2) var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
+  .nav-btn.primary { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+  .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
 
 class CampaignWizardElement extends BaseComponent {
   private currentStep = 0;
   private campaignData: CampaignFormData = { ...INITIAL_CAMPAIGN_DATA };
-  private stepValidationState: boolean[] = [false, false, false, false, false, true];
+  private stepValidationState: boolean[] = [false, false, false, false, true];
   private isLaunched = false;
   private pendingNavigationPath: string | null = null;
 
@@ -72,7 +123,7 @@ class CampaignWizardElement extends BaseComponent {
     if (dupId) {
       // Mock populate for duplicate and jump to review
       this.campaignData = { ...INITIAL_CAMPAIGN_DATA, name: 'Copy of Campaign ' + dupId };
-      this.currentStep = 5; // Jump to Review
+      this.currentStep = 4; // Jump to Review
     }
     
     this.syncStepComponent();
@@ -117,15 +168,28 @@ class CampaignWizardElement extends BaseComponent {
 
   private handleStepValidity = (event: Event): void => {
     const detail = (event as CustomEvent<{ isValid: boolean }>).detail;
-    this.stepValidationState[this.currentStep] = detail.isValid;
-    this.rerender();
-    this.syncNavButtons();
+    if (this.stepValidationState[this.currentStep] !== detail.isValid) {
+      this.stepValidationState[this.currentStep] = detail.isValid;
+      this.syncNavButtons();
+      // No need to rerender the entire wizard, just update the nav buttons
+    }
   };
 
   private handleStepData = (event: Event): void => {
     const detail = (event as CustomEvent<{ data: Partial<CampaignFormData> }>).detail;
     this.campaignData = { ...this.campaignData, ...detail.data };
-    this.syncStepComponent();
+    // No need to syncStepComponent, the child component already has the latest data
+    // and recreating it will cause input focus to be lost.
+    
+    // We do need to update the preview panel if we want real-time checks, 
+    // so we can update just the preview panel here.
+    const previewContainer = this.shadow.querySelector('.preview-card');
+    if (previewContainer) {
+      previewContainer.innerHTML = `
+        <p class="preview-title">Progress</p>
+        ${this.renderPreview()}
+      `;
+    }
   };
 
   private handleLaunch = async (): Promise<void> => {
@@ -213,7 +277,6 @@ class CampaignWizardElement extends BaseComponent {
       { label: 'Ad Domain', done: this.campaignData.domain !== '' },
       { label: 'Budget & Targeting', done: this.campaignData.platforms.length > 0 },
       { label: 'Targeting', done: this.campaignData.deviceOs.length > 0 },
-      { label: 'Bid Multiplier', done: this.campaignData.bidMultiplierRules.length > 0 },
     ];
     return checks.map((c) => {
       const icon = c.done ? '<span class="preview-check-icon">✓</span>' : '<span class="preview-pending-icon">○</span>';

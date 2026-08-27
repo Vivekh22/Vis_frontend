@@ -113,7 +113,7 @@ class StepReview extends BaseComponent implements StepComponent {
       }, 800);
     } else if (target.closest('[data-edit-step]')) {
       const stepIndex = Number(target.closest('[data-edit-step]')!.getAttribute('data-edit-step'));
-      this.emit('edit-step', { stepIndex }, { bubbles: true, composed: true });
+      this.emit('edit-step', { stepIndex });
     }
   };
 

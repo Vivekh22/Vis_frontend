@@ -61,6 +61,7 @@ import { IntegrationsPageElement } from './pages/client/integrations-api-keys/In
 import { SupportPageElement } from './pages/client/support/SupportPageElement';
 import { SettingsPageElement } from './pages/client/settings/SettingsPageElement';
 import { NotificationCenterPageElement } from './pages/client/notification-center/NotificationCenterPageElement';
+import { BidMultiplierPageElement } from './pages/client/bid-multiplier/BidMultiplierPageElement';
 import { permissionService } from './services';
 import { RouteGuard } from './platform/router/RouteGuard';
 import { applyCspMeta } from './security/ContentSecurityPolicy';
@@ -168,6 +169,13 @@ if (root instanceof HTMLElement) {
     new Route({
       path: '/client/creatives/new',
       component: CreativeListPageElement,
+      requiredRole: ['client'],
+      requiredPermission: null,
+      layoutComponent: ClientLayoutElement,
+    }),
+    new Route({
+      path: '/client/bid-multiplier',
+      component: BidMultiplierPageElement,
       requiredRole: ['client'],
       requiredPermission: null,
       layoutComponent: ClientLayoutElement,

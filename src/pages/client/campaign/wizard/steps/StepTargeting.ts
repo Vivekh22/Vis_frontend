@@ -30,20 +30,28 @@ const STYLES = `
     font-size: var(--font-size-sm);
     font-family: var(--font-body);
   }
-  .row { display: flex; gap: var(--space-3); }
+  .row { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-2); }
   .row .field { flex: 1; }
+  .row-label { width: 220px; font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-primary); text-transform: uppercase; }
+  
+  .geo-row { display: flex; gap: var(--space-2); flex: 1; }
+  .geo-input { flex: 2; }
+  .geo-select { flex: 1; }
+  
   .radio-group { display: flex; gap: var(--space-3); }
-  .radio-item { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-sm); }
-  .checkbox-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-  .checkbox-item { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-sm); }
-  .card {
-    background: var(--color-surface);
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: var(--space-4); border: 1px solid var(--color-border); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); }
+  .checkbox-item { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-sm); text-transform: uppercase; font-weight: 600; }
+  .checkbox-item input[type="checkbox"] { accent-color: var(--color-primary); }
+  
+  .listing-card {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     padding: var(--space-3);
+    margin-bottom: var(--space-3);
   }
-  .card-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin: 0 0 var(--space-2); }
-  .card-note { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0; }
+  .listing-title { font-size: var(--font-size-sm); font-weight: 600; text-transform: uppercase; margin: 0 0 var(--space-3); color: var(--color-text-primary); }
+  .listing-field { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-2); }
+  .listing-label { font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; color: var(--color-text-primary); }
 `;
 
 const DEVICES = ['iOS', 'Android', 'Windows', 'macOS', 'Linux'];
@@ -88,11 +96,13 @@ class StepTargeting extends BaseComponent implements StepComponent {
 
   protected onMount(): void {
     this.shadow.addEventListener('change', this.handleChange);
+    this.shadow.addEventListener('input', this.handleChange);
     this.shadow.addEventListener('click', this.handleClick);
   }
 
   protected onUnmount(): void {
     this.shadow.removeEventListener('change', this.handleChange);
+    this.shadow.removeEventListener('input', this.handleChange);
     this.shadow.removeEventListener('click', this.handleClick);
   }
 
@@ -102,26 +112,38 @@ class StepTargeting extends BaseComponent implements StepComponent {
     if (!field || !this._data) return;
     const value = (target as HTMLInputElement).value;
     const checked = (target as HTMLInputElement).checked;
-    const newData = { ...this._data, [field]: field === 'geoMode' ? value : checked };
+    
+    if (target.tagName.toLowerCase() === 'input' && (target as HTMLInputElement).type === 'checkbox') {
+      const chip = target.getAttribute('data-chip');
+      const chipType = target.getAttribute('data-chip-type');
+      if (chip && chipType && Array.isArray(this._data[chipType as keyof CampaignFormData])) {
+        const list = this._data[chipType as keyof CampaignFormData] as string[];
+        const newList = checked ? [...list, chip] : list.filter(v => v !== chip);
+        const newData = { ...this._data, [chipType]: newList };
+        this._data = newData;
+        this.emitDataChanged(newData);
+        this.emitValidity(true);
+        return;
+      }
+      
+      if (field === 'deviceIdentifier') {
+        const newData = { ...this._data, deviceIdentifier: checked ? target.getAttribute('value') as any : '' };
+        this._data = newData;
+        this.emitDataChanged(newData);
+        this.emitValidity(true);
+        this.rerender();
+        return;
+      }
+    }
+
+    const newData = { ...this._data, [field]: value };
     this._data = newData;
     this.emitDataChanged(newData);
     this.emitValidity(true);
   };
 
   private handleClick = (event: Event): void => {
-    const target = event.target as HTMLElement;
-    const chip = target.closest('[data-chip]');
-    if (!chip || !this._data) return;
-    const chipType = chip.getAttribute('data-chip-type');
-    const chipValue = chip.getAttribute('data-chip');
-    if (!chipType || !chipValue) return;
-    const list = this._data[chipType as keyof CampaignFormData] as string[];
-    if (!Array.isArray(list)) return;
-    const newList = list.includes(chipValue) ? list.filter((v) => v !== chipValue) : [...list, chipValue];
-    const newData = { ...this._data, [chipType]: newList };
-    this._data = newData;
-    this.rerender();
-    this.emitDataChanged(newData);
+    // Checkbox clicks handled by handleChange
   };
 
   private emitDataChanged(data: CampaignFormData): void {
@@ -137,89 +159,91 @@ class StepTargeting extends BaseComponent implements StepComponent {
     const d = this._data;
     return html`
       <div class="step-content">
-        <div class="field">
-          <label class="field-label">Geo Targeting</label>
-          <div class="radio-group">
-            <div class="radio-item"><input type="radio" name="geoMode" data-field="geoMode" value="include" ${d.geoMode === 'include' ? 'checked' : ''}><span>Include</span></div>
-            <div class="radio-item"><input type="radio" name="geoMode" data-field="geoMode" value="exclude" ${d.geoMode === 'exclude' ? 'checked' : ''}><span>Exclude</span></div>
+        <div class="row">
+          <div class="row-label">Country</div>
+          <div class="geo-row">
+            <input type="text" class="field-input geo-input" data-field="geoCountries" value="${d.geoCountries}">
+            <select class="field-input geo-select"><option>INCLUDE/EXCLUDE</option></select>
           </div>
         </div>
         <div class="row">
-          <div class="field"><label class="field-label">Countries</label><input type="text" class="field-input" data-field="geoCountries" value="${d.geoCountries}" placeholder="US, UK, IN"></div>
-          <div class="field"><label class="field-label">States</label><input type="text" class="field-input" data-field="geoStates" value="${d.geoStates}"></div>
-          <div class="field"><label class="field-label">Cities</label><input type="text" class="field-input" data-field="geoCities" value="${d.geoCities}"></div>
-        </div>
-        <div class="row">
-          <div class="field"><label class="field-label">Zip Codes</label><input type="text" class="field-input" data-field="zipCodes" value="${d.zipCodes}"></div>
-          <div class="field"><label class="field-label">Lat/Long</label><input type="text" class="field-input" data-field="latLong" value="${d.latLong}" placeholder="37.7749,-122.4194"></div>
-        </div>
-        <div class="field">
-          <label class="field-label">Device / OS</label>
-          <div class="checkbox-group">
-            ${SafeHtmlString.trusted(DEVICES.map((dev) => {
-              const checked = d.deviceOs.includes(dev);
-              return `<div class="checkbox-item"><input type="checkbox" data-chip="${dev}" data-chip-type="deviceOs" ${checked ? 'checked' : ''}><span>${dev}</span></div>`;
-            }).join(''))}
+          <div class="row-label">State</div>
+          <div class="geo-row">
+            <input type="text" class="field-input geo-input" data-field="geoStates" value="${d.geoStates}">
+            <select class="field-input geo-select"><option>INCLUDE/EXCLUDE</option></select>
           </div>
         </div>
-        <div class="field">
-          <label class="field-label">Network</label>
-          <div class="checkbox-group">
+        <div class="row">
+          <div class="row-label">City</div>
+          <div class="geo-row">
+            <input type="text" class="field-input geo-input" data-field="geoCities" value="${d.geoCities}">
+            <select class="field-input geo-select"><option>INCLUDE/EXCLUDE</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row-label">Zip Code</div>
+          <input type="text" class="field-input" data-field="zipCodes" value="${d.zipCodes}">
+        </div>
+        <div class="row">
+          <div class="row-label">Longitude, Latitude</div>
+          <input type="text" class="field-input" data-field="latLong" value="${d.latLong}">
+        </div>
+        
+        <div class="row">
+          <div class="row-label">OS</div>
+          <select class="field-input" data-field="deviceOs" style="flex: 1;">
+            <option value="">SELECT ↓</option>
+            ${SafeHtmlString.trusted(DEVICES.map(dev => `<option value="${dev}" ${d.deviceOs.includes(dev) ? 'selected' : ''}>${dev}</option>`).join(''))}
+          </select>
+          <div class="row-label" style="margin-left: var(--space-4); width: 80px;">Network</div>
+          <div class="checkbox-group" style="flex: 1;">
             ${SafeHtmlString.trusted(NETWORKS.map((n) => {
               const checked = d.networkType.includes(n);
-              return `<div class="checkbox-item"><input type="checkbox" data-chip="${n}" data-chip-type="networkType" ${checked ? 'checked' : ''}><span>${n}</span></div>`;
+              return `<label class="checkbox-item"><input type="checkbox" data-chip="${n}" data-chip-type="networkType" ${checked ? 'checked' : ''}>${n}</label>`;
             }).join(''))}
           </div>
         </div>
-        <div class="field">
-          <label class="field-label" for="deviceIdentifier">Device Identifier</label>
-          <input type="text" class="field-input" data-field="deviceIdentifier" id="deviceIdentifier" value="${d.deviceIdentifier}">
+
+        <div class="row"><div class="row-label">OS Version</div><select class="field-input" data-field="osVersion"><option value="">SELECT ↓</option></select></div>
+        <div class="row"><div class="row-label">OS Minor Version</div><select class="field-input" data-field="osMinorVersion"><option value="">SELECT ↓</option></select></div>
+        <div class="row"><div class="row-label">Device Type</div><select class="field-input" data-field="deviceType"><option value="">SELECT ↓</option></select></div>
+        <div class="row"><div class="row-label">Device Manufacturer</div><select class="field-input" data-field="deviceManufacturer"><option value="">SELECT ↓</option></select></div>
+        
+        <div class="row">
+          <div class="row-label">Device Identifier</div>
+          <select class="field-input" data-field="deviceIdentifierSelect" style="flex: 1;"><option value="">SELECT ↓</option></select>
+          <span style="color: var(--color-text-muted); margin: 0 var(--space-2);">→</span>
+          <div class="checkbox-group" style="flex: 1;">
+            <label class="checkbox-item"><input type="checkbox" data-field="deviceIdentifier" value="both" ${d.deviceIdentifier === 'both' ? 'checked' : ''}> BOTH</label>
+            <label class="checkbox-item"><input type="checkbox" data-field="deviceIdentifier" value="missing" ${d.deviceIdentifier === 'missing' ? 'checked' : ''}> MISSING</label>
+            <label class="checkbox-item"><input type="checkbox" data-field="deviceIdentifier" value="present" ${d.deviceIdentifier === 'present' ? 'checked' : ''}> PRESENT</label>
+          </div>
         </div>
-        <div class="field">
-          <label class="field-label" for="smartAppCategories">Smart App Categories</label>
-          <input type="text" class="field-input" data-field="smartAppCategories" id="smartAppCategories" value="${d.smartAppCategories}">
-        </div>
+
+        <div class="row"><div class="row-label">Device Language</div><select class="field-input" data-field="deviceLanguage"><option value="">SELECT ↓</option></select></div>
+        <div class="row"><div class="row-label">Smart App Categories</div><input type="text" class="field-input" data-field="smartAppCategories" value="${d.smartAppCategories}"></div>
+
         ${SafeHtmlString.trusted(this.renderCards(d))}
       </div>
     `;
   }
 
   private renderCards(d: CampaignFormData): string {
-    const listTypes: { key: string; title: string; placeholder: string; whiteField: keyof CampaignFormData; blackField: keyof CampaignFormData }[] = [
-      { key: 'app', title: 'App List', placeholder: 'Enter App IDs...', whiteField: 'appWhitelist', blackField: 'appBlacklist' },
-      { key: 'audience', title: 'Audience List', placeholder: 'Enter Audience IDs...', whiteField: 'audienceWhitelist', blackField: 'audienceBlacklist' },
-    ];
-    if (this._ipFreqCappingEnabled) {
-      listTypes.push({ key: 'ip', title: 'IP List', placeholder: 'Enter IPs...', whiteField: 'ipWhitelist', blackField: 'ipBlacklist' });
-    }
+    return `
+      <div class="listing-card">
+        <p class="listing-title">White Listing</p>
+        <div class="listing-field"><label class="listing-label">App List</label><input type="text" class="field-input" data-field="appWhitelist" value="${d.appWhitelist}"></div>
+        <div class="listing-field"><label class="listing-label">Audience List</label><input type="text" class="field-input" data-field="audienceWhitelist" value="${d.audienceWhitelist}"></div>
+        ${this._ipFreqCappingEnabled ? `<div class="listing-field"><label class="listing-label">IP List</label><input type="text" class="field-input" data-field="ipWhitelist" value="${d.ipWhitelist}"></div>` : ''}
+      </div>
 
-    return listTypes.map((c) => {
-      const wVal = (d[c.whiteField] as string) || '';
-      const bVal = (d[c.blackField] as string) || '';
-      
-      const wItems = wVal.split(',').map(s => s.trim()).filter(Boolean);
-      const bItems = bVal.split(',').map(s => s.trim()).filter(Boolean);
-      const conflicts = wItems.filter(item => bItems.includes(item));
-      const hasConflict = conflicts.length > 0;
-      
-      return `
-        <div class="card ${hasConflict ? 'conflict' : ''}">
-          <p class="card-title">${c.title}</p>
-          <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-2);">
-            <div class="field" style="flex: 1;">
-              <label class="field-label" style="font-size: var(--font-size-xs);">Whitelist</label>
-              <input type="text" class="field-input" data-field="${String(c.whiteField)}" value="${wVal}" placeholder="${c.placeholder}">
-            </div>
-            <div class="field" style="flex: 1;">
-              <label class="field-label" style="font-size: var(--font-size-xs);">Blacklist</label>
-              <input type="text" class="field-input" data-field="${String(c.blackField)}" value="${bVal}" placeholder="${c.placeholder}">
-            </div>
-          </div>
-          ${hasConflict ? `<p class="conflict-warning" style="color: var(--color-danger); font-size: var(--font-size-xs); margin: 0 0 var(--space-2); display: flex; align-items: center; gap: 4px;">⚠️ Conflict detected: ${conflicts.join(', ')}</p>` : ''}
-          <p class="card-note">Free-text entry (comma separated) — cross-referencing arrives in Part 9.</p>
-        </div>
-      `;
-    }).join('');
+      <div class="listing-card">
+        <p class="listing-title">Black Listing</p>
+        <div class="listing-field"><label class="listing-label">App List</label><input type="text" class="field-input" data-field="appBlacklist" value="${d.appBlacklist}"></div>
+        <div class="listing-field"><label class="listing-label">Audience List</label><input type="text" class="field-input" data-field="audienceBlacklist" value="${d.audienceBlacklist}"></div>
+        ${this._ipFreqCappingEnabled ? `<div class="listing-field"><label class="listing-label">IP List</label><input type="text" class="field-input" data-field="ipBlacklist" value="${d.ipBlacklist}"></div>` : ''}
+      </div>
+    `;
   }
 }
 

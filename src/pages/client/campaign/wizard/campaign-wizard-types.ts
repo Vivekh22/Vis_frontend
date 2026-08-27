@@ -11,28 +11,39 @@ export interface CampaignFormData {
   name: string;
   timeZone: string;
   startDate: string;
+  startTime: string;
   endDate: string;
+  endTime: string;
   runAllTime: boolean;
+  runAtScheduledTime: boolean;
   schedule: ScheduleGrid;
 
   // Step 2 — Ad Domain
+  searchDomain: string;
   domain: string;
-  domainMode: 'app_bundle' | 'website';
+  domainMode: 'app_bundle' | 'website' | 'create_new';
   enableSkadNetwork: boolean;
 
   // Step 3 — Budget & Targeting Type
-  platforms: string[];
+  platforms: string[]; // APP, WEB, DESKTOP, CTV
   creativeTypes: string[];
-  optimizationGoals: string[];
+  optimizationGoals: string[]; // CPM, CPC, CPI, CPA
   budget: number;
+  dayBudget: number;
   bid: number;
+  targetBids: number;
+  dailyImpression: number;
+  totalImpressionCap: number;
   frequencyCap: number;
-  frequencyPeriod: string;
+  frequencyPeriod: 'life' | 'hour' | 'day';
+  impressionIntervalPerUser: number;
   budgetPacing: boolean;
   bidShading: boolean;
   impressionPacing: boolean;
   autoExclusion: boolean;
   appDiversity: boolean;
+  creativeOptimization: string;
+  autoBlacklisting: string;
 
   // Step 4 — Targeting
   geoCountries: string;
@@ -42,8 +53,13 @@ export interface CampaignFormData {
   zipCodes: string;
   latLong: string;
   deviceOs: string[];
-  networkType: string[];
-  deviceIdentifier: string;
+  osVersion: string;
+  osMinorVersion: string;
+  deviceType: string;
+  deviceManufacturer: string;
+  deviceIdentifier: 'both' | 'missing' | 'present' | '';
+  deviceLanguage: string;
+  networkType: string[]; // CELLULAR, WIFI
   smartAppCategories: string;
   appWhitelist: string;
   appBlacklist: string;
@@ -71,10 +87,14 @@ export const INITIAL_CAMPAIGN_DATA: CampaignFormData = {
   name: '',
   timeZone: 'UTC',
   startDate: '',
+  startTime: '',
   endDate: '',
+  endTime: '',
   runAllTime: true,
+  runAtScheduledTime: false,
   schedule: Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => false)),
 
+  searchDomain: '',
   domain: '',
   domainMode: 'website',
   enableSkadNetwork: false,
@@ -83,14 +103,21 @@ export const INITIAL_CAMPAIGN_DATA: CampaignFormData = {
   creativeTypes: [],
   optimizationGoals: [],
   budget: 0,
+  dayBudget: 0,
   bid: 0,
+  targetBids: 0,
+  dailyImpression: 0,
+  totalImpressionCap: 0,
   frequencyCap: 0,
-  frequencyPeriod: 'daily',
+  frequencyPeriod: 'daily' as any,
+  impressionIntervalPerUser: 0,
   budgetPacing: true,
   bidShading: false,
   impressionPacing: false,
   autoExclusion: false,
   appDiversity: false,
+  creativeOptimization: '',
+  autoBlacklisting: '',
 
   geoCountries: '',
   geoStates: '',
@@ -99,8 +126,13 @@ export const INITIAL_CAMPAIGN_DATA: CampaignFormData = {
   zipCodes: '',
   latLong: '',
   deviceOs: [],
-  networkType: [],
+  osVersion: '',
+  osMinorVersion: '',
+  deviceType: '',
+  deviceManufacturer: '',
   deviceIdentifier: '',
+  deviceLanguage: '',
+  networkType: [],
   smartAppCategories: '',
   appWhitelist: '',
   appBlacklist: '',
@@ -131,6 +163,5 @@ export const WIZARD_STEPS = [
   { key: 'domain', label: 'Ad Domain' },
   { key: 'budget', label: 'Budget & Targeting' },
   { key: 'targeting', label: 'Targeting' },
-  { key: 'multiplier', label: 'Bid Multiplier' },
   { key: 'review', label: 'Review' },
 ] as const;

@@ -14,12 +14,6 @@
  * DashboardRepository depending on VITE_USE_MOCK_DATA).
  *
  * Accordion behavior:
- *   Only one report tile's breakdown is open at a time. This is coordinated
- *   HERE, not in the tile component — a tile doesn't know about its siblings.
- *
- * Period-over-period deltas:
- *   Next to each selected KPI chip, an ↑/↓ arrow + percentage is rendered.
- *   This uses the same comparison data as the insight line — computed once
  *   by DashboardService, not recomputed separately.
  */
 import { BaseComponent } from '../../../platform/component/BaseComponent';
@@ -29,17 +23,13 @@ import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { dashboardService, suggestionService } from '../../../services';
 import type { DashboardSummary } from '../../../services/DashboardService';
 import { DateRange } from '../../../core/value-objects/DateRange';
-import { ReportShortcutTileElement } from '../../../components/report-shortcut-tile/ReportShortcutTileElement';
-import '../../../components/report-shortcut-tile/ReportBreakdownElement';
-import '../../../components/ai-suggestion/AiSuggestionPopupElement';
+import '../../../components/ai-suggestion/AiSuggestionSidebarElement';
 import '../../../components/empty-state/EmptyStateElement';
 import '../../../components/loading-state/LoadingStateElement';
 import '../../../components/kpi-metric-picker/KpiMetricPickerElement';
 import '../../../components/period-selector/PeriodSelectorElement';
 import '../../../components/chart-widget/ChartWidgetElement';
-
-
-
+import '../../../components/data-table/DataTableElement';
 
 interface ChartWidgetHost extends HTMLElement {
   data: { label: string; value: number }[];
@@ -62,21 +52,13 @@ interface PeriodSelectorHost extends HTMLElement {
   selectedPeriod: string;
 }
 
-interface ReportTileHost extends HTMLElement {
-  label: string;
-  expanded: boolean;
-}
-
-interface ReportBreakdownHost extends HTMLElement {
-  tileKey: string;
-  summary: DashboardSummary | null;
-}
-
 const STYLES = `
   :host { 
     display: block; 
-    font-family: var(--font-body); 
+    font-family: 'Inter', system-ui, sans-serif; 
     animation: fadeIn 0.5s ease-out;
+    position: relative;
+    padding: var(--space-4);
   }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -86,7 +68,6 @@ const STYLES = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--space-6);
   }
   .dashboard-title {
     font-size: 2rem;
@@ -102,93 +83,47 @@ const STYLES = `
     align-items: center;
     gap: var(--space-3);
   }
-  .chart-type-toggle {
-    display: flex;
-    gap: var(--space-1);
-    background: var(--color-surface-2);
-    padding: 4px;
-    border-radius: var(--radius-lg);
-  }
-  .chart-type-btn {
-    padding: var(--space-2) var(--space-4);
-    border: none;
-    border-radius: var(--radius-md);
-    background: transparent;
-    cursor: pointer;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    color: var(--color-text-muted);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .chart-type-btn:hover {
-    color: var(--color-text-primary);
-  }
-  .chart-type-btn.active {
-    background: var(--color-bg);
-    color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
-  .insight-line {
-    background: linear-gradient(145deg, rgba(79, 70, 229, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
-    border: 1px solid rgba(79, 70, 229, 0.2);
-    border-left: 4px solid var(--color-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
-    margin-bottom: var(--space-6);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-  }
-  .insight-line::before {
-    content: '✨';
-    font-size: 1.2rem;
-  }
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--space-4);
-    margin-bottom: var(--space-8);
   }
   .kpi-card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: var(--space-5);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: var(--space-3) var(--space-4);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.03);
     position: relative;
     overflow: hidden;
-  }
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .kpi-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+    background: #ffffff;
     border-color: var(--color-primary-light);
-  }
-  .kpi-card:hover::before {
-    opacity: 1;
+    box-shadow: 0 8px 24px 0 rgba(0,0,0,0.06);
   }
   .kpi-label {
-    font-size: var(--font-size-xs);
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin: 0 0 var(--space-2);
+    margin: 0 0 2px;
+  }
+  .kpi-value-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
   }
   .kpi-value {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--color-text-primary);
     margin: 0;
@@ -197,24 +132,144 @@ const STYLES = `
   .kpi-delta {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: var(--font-size-xs);
+    gap: 2px;
+    font-size: 0.7rem;
     font-weight: 700;
-    margin-top: var(--space-2);
-    padding: 4px 8px;
-    border-radius: 20px;
-    background: var(--color-surface-2);
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.04);
   }
-  .kpi-delta.up { color: var(--color-success); background: rgba(34, 197, 94, 0.1); }
-  .kpi-delta.down { color: var(--color-danger); background: rgba(239, 68, 68, 0.1); }
+  .kpi-delta.up { color: #059669; background: rgba(16, 185, 129, 0.15); }
+  .kpi-delta.down { color: #dc2626; background: rgba(239, 68, 68, 0.15); }
   .kpi-delta.flat { color: var(--color-text-muted); }
-  .chart-section {
+  .insight-line {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: var(--space-6);
-    margin-bottom: var(--space-8);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+    border-left: 4px solid var(--color-primary);
+    border-radius: 8px;
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .insight-line::before {
+    content: '💡';
+    font-size: 1rem;
+    filter: grayscale(0.5);
+  }
+  .picker-container {
+    /* Intentionally blank since spacing is handled by parent gap */
+  }
+  .dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .chart-section {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: var(--space-4);
+    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.03);
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+  .shortcuts-row {
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+  }
+  .shortcut-card {
+    flex: 1;
+    min-width: 120px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--space-3);
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .shortcut-card:hover {
+    border-color: var(--color-primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+  }
+  .shortcut-card.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  }
+  .breakdown-section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.03);
+    animation: slideDown 0.3s ease-out;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .breakdown-header {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .breakdown-filter {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    outline: none;
+  }
+  .breakdown-chart-container {
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .breakdown-chart-container chart-widget {
+    width: 100%;
+    height: 100%;
+  }
+  .campaigns-section {
+    margin-top: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  chart-widget {
+    flex: 1;
+    min-height: 200px;
   }
   .chart-header {
     display: flex;
@@ -223,33 +278,78 @@ const STYLES = `
     margin-bottom: var(--space-5);
   }
   .chart-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--color-text-primary);
     margin: 0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
-  .report-tiles {
+  .chart-type-toggle {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-1);
+    background: rgba(0, 0, 0, 0.04);
+    padding: 6px;
+    border-radius: 10px;
   }
-  @media (prefers-color-scheme: dark) {
-    .insight-line {
-      background: linear-gradient(145deg, rgba(79, 70, 229, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-    }
-    .kpi-card {
-      background: rgba(0, 0, 0, 0.2);
-    }
+  .chart-type-btn {
+    padding: var(--space-1) var(--space-4);
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    transition: all 0.3s ease;
   }
-`;
+  .chart-type-btn:hover {
+    color: var(--color-text-primary);
+    background: rgba(0,0,0,0.05);
+  }
+  .chart-type-btn.active {
+    background: #fff;
+    color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .floating-ai-btn {
+    position: fixed;
+    bottom: var(--space-6);
+    right: var(--space-6);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
+    background: #0066ff;
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 102, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 900;
+  }
+  .floating-ai-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 102, 255, 0.5);
+  }
+  ai-suggestion-sidebar {
+    position: fixed;
+    bottom: calc(var(--space-6) + 80px);
+    right: var(--space-6);
+    width: 360px;
+    height: 500px;
+    max-height: calc(100vh - 120px);
+    z-index: 1000;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  }
 
-const REPORT_TILES: { key: string; label: string }[] = [
-  { key: 'day', label: 'By Day' },
-  { key: 'exchange', label: 'By Exchange' },
-  { key: 'os', label: 'By OS' },
-  { key: 'campaign', label: 'By Campaign' },
-  { key: 'creative', label: 'By Creative' },
-];
+
+`;
 
 class DashboardPageElement extends BaseComponent {
   private isLoading = true;
@@ -257,7 +357,8 @@ class DashboardPageElement extends BaseComponent {
   private selectedMetrics = ['Impressions', 'Clicks', 'Spend', 'Installs'];
   private chartType: 'bar' | 'line' | 'area' = 'bar';
   private currentPeriod: DateRange = DateRange.fromPeriodOption('7d');
-  private expandedTileKey: string | null = null;
+  private isSidebarOpen = false;
+  private activeShortcut: 'DAY' | 'EXCHANGE' | 'OS' | 'CAMPAIGN' | 'CREATIVE' | null = null;
 
   constructor() {
     super();
@@ -268,8 +369,8 @@ class DashboardPageElement extends BaseComponent {
   protected onMount(): void {
     this.shadow.addEventListener('period-changed', this.handlePeriodChanged);
     this.shadow.addEventListener('metrics-changed', this.handleMetricsChanged);
-    this.shadow.addEventListener('tile-clicked', this.handleTileClicked);
     this.shadow.addEventListener('click', this.handleClick);
+    this.shadow.addEventListener('sidebar-closed', this.handleSidebarClosed);
     this.addEventListener('suggestion-accepted', this.handleSuggestionAccepted);
     void this.loadSummary();
   }
@@ -277,10 +378,16 @@ class DashboardPageElement extends BaseComponent {
   protected onUnmount(): void {
     this.shadow.removeEventListener('period-changed', this.handlePeriodChanged);
     this.shadow.removeEventListener('metrics-changed', this.handleMetricsChanged);
-    this.shadow.removeEventListener('tile-clicked', this.handleTileClicked);
     this.shadow.removeEventListener('click', this.handleClick);
+    this.shadow.removeEventListener('sidebar-closed', this.handleSidebarClosed);
     this.removeEventListener('suggestion-accepted', this.handleSuggestionAccepted);
   }
+
+  private handleSidebarClosed = (): void => {
+    this.isSidebarOpen = false;
+    this.rerender();
+    this.syncChildComponents();
+  };
 
   private async loadSummary(): Promise<void> {
     this.isLoading = true;
@@ -294,7 +401,6 @@ class DashboardPageElement extends BaseComponent {
     this.isLoading = false;
     this.rerender();
     this.syncChildComponents();
-    // Trigger AI suggestion checkpoint — page load with existing data
     this.dispatchSuggestionCheckpoint();
   }
 
@@ -305,7 +411,7 @@ class DashboardPageElement extends BaseComponent {
       await suggestionService.acceptSuggestion(ce.detail.suggestionId);
       void this.loadSummary();
     } catch {
-      // Suggestion acceptance is non-critical — silently fail
+      // Suggestion acceptance is non-critical
     }
   };
 
@@ -345,19 +451,54 @@ class DashboardPageElement extends BaseComponent {
     if (period) {
       period.selectedPeriod = '7d';
     }
-    this.syncExpandedTile();
-  }
+    
+    const breakdownChart = this.shadow.querySelector<ChartWidgetHost>('.breakdown-chart');
+    if (breakdownChart && this.activeShortcut) {
+      breakdownChart.chartType = 'bar';
+      breakdownChart.format = 'number';
+      breakdownChart.isLoading = false;
+      // Mock data based on selected tab to simulate different breakdown reports
+      if (this.activeShortcut === 'OS') {
+        breakdownChart.data = [
+          { label: 'ANDROID', value: 450 },
+          { label: 'IOS', value: 350 },
+          { label: 'WINDOWS', value: 200 },
+        ];
+      } else if (this.activeShortcut === 'DAY') {
+        breakdownChart.data = [
+          { label: 'Mon', value: 120 }, { label: 'Tue', value: 180 }, { label: 'Wed', value: 150 },
+        ];
+      } else {
+        breakdownChart.data = [
+          { label: 'Segment A', value: 400 },
+          { label: 'Segment B', value: 300 },
+          { label: 'Segment C', value: 300 },
+        ];
+      }
+    }
 
-  private syncExpandedTile(): void {
-    if (!this.expandedTileKey || !this.summary) return;
-    const breakdown = this.shadow.querySelector<ReportBreakdownHost>(`report-breakdown[data-breakdown-key="${this.expandedTileKey}"]`);
-    if (breakdown) {
-      breakdown.tileKey = this.expandedTileKey;
-      breakdown.summary = this.summary;
+    const campaignsTable = this.shadow.querySelector<any>('.campaigns-table');
+    if (campaignsTable) {
+      campaignsTable.columns = [
+        { key: 'name', label: 'Campaign', sortable: true },
+        { key: 'status', label: 'Status', sortable: true, render: (r: any) => `<span style="font-weight: 600; color: ${r.status === 'Active' ? '#059669' : '#d97706'}">${r.status}</span>` },
+        { key: 'spend', label: 'Spend', sortable: true, render: (r: any) => `$${r.spend.toLocaleString()}` },
+        { key: 'impressions', label: 'Impressions', sortable: true, render: (r: any) => r.impressions.toLocaleString() },
+        { key: 'cpa', label: 'eCPA', sortable: true, render: (r: any) => `$${r.cpa.toFixed(2)}` },
+        { key: 'roas', label: 'ROAS', sortable: true, render: (r: any) => `${r.roas}x` },
+      ];
+      campaignsTable.rows = [
+        { name: 'Holiday Promo 2024', status: 'Active', spend: 12500, impressions: 450000, cpa: 12.50, roas: 3.2 },
+        { name: 'Retargeting EMEA', status: 'Active', spend: 8400, impressions: 320000, cpa: 8.90, roas: 4.5 },
+        { name: 'Q3 Brand Awareness', status: 'Paused', spend: 45000, impressions: 1200000, cpa: 15.20, roas: 1.8 },
+        { name: 'App Install Challenge', status: 'Active', spend: 3200, impressions: 85000, cpa: 4.50, roas: 5.1 },
+        { name: 'Win-back Campaign', status: 'Active', spend: 1500, impressions: 25000, cpa: 22.00, roas: 2.1 },
+      ];
+      campaignsTable.totalItems = 5;
+      campaignsTable.pageSize = 5;
+      campaignsTable.searchPlaceholder = "Search campaigns...";
     }
   }
-
-
 
   private handlePeriodChanged = (event: Event): void => {
     const detail = (event as CustomEvent<DateRange>).detail;
@@ -373,17 +514,6 @@ class DashboardPageElement extends BaseComponent {
     void this.loadSummary();
   };
 
-  private handleTileClicked = (event: Event): void => {
-    const detail = (event as CustomEvent<{ label: string; expanded: boolean }>).detail;
-    if (detail.expanded) {
-      this.expandedTileKey = REPORT_TILES.find((t) => t.label === detail.label)?.key ?? null;
-    } else {
-      this.expandedTileKey = null;
-    }
-    this.rerender();
-    this.syncAllTiles();
-  };
-
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
     const chartTypeBtn = target.closest('[data-chart-type]');
@@ -391,50 +521,77 @@ class DashboardPageElement extends BaseComponent {
       const type = chartTypeBtn.getAttribute('data-chart-type') as 'bar' | 'line' | 'area';
       if (type) {
         this.chartType = type;
-        const chart = this.shadow.querySelector<ChartWidgetHost>('chart-widget');
+        const chart = this.shadow.querySelector<ChartWidgetHost>('chart-widget:not(.breakdown-chart)');
         if (chart) chart.chartType = type;
         this.rerender();
       }
     }
+    
+    if (target.closest('[data-action="toggle-sidebar"]')) {
+      this.isSidebarOpen = !this.isSidebarOpen;
+      this.rerender();
+      this.syncChildComponents();
+    }
+
+    const shortcutBtn = target.closest('.shortcut-card');
+    if (shortcutBtn) {
+      const type = shortcutBtn.getAttribute('data-shortcut') as any;
+      // Toggle off if already active, otherwise activate
+      this.activeShortcut = this.activeShortcut === type ? null : type;
+      this.rerender();
+      this.syncChildComponents();
+    }
   };
 
-  private syncAllTiles(): void {
-    for (const tile of REPORT_TILES) {
-      const el = this.shadow.querySelector<ReportTileHost>(`[data-tile-key="${tile.key}"]`);
-      if (el) {
-        el.label = tile.label;
-        el.expanded = tile.key === this.expandedTileKey;
-      }
-    }
-    this.syncExpandedTile();
-  }
-
-  private renderKpiCards(): string {
+  private renderFixedKpiCards(): string {
     if (!this.summary) return '';
-    return this.selectedMetrics
-      .filter((m) => m in this.summary!.kpiValues)
+    const fixedMetrics = ['Impressions', 'Clicks', 'Spend', 'Installs'];
+    return fixedMetrics
       .map((m) => {
-        const value = this.summary!.kpiValues[m]!;
+        const value = this.summary!.kpiValues[m] ?? 0;
         const delta = this.summary!.deltas[m];
         let deltaHtml = '';
         if (delta) {
           const arrow = delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '–';
           deltaHtml = `<p class="kpi-delta ${delta.direction}">${arrow} ${Math.abs(delta.value)}%</p>`;
         }
-        return `<div class="kpi-card"><p class="kpi-label">${m}</p><p class="kpi-value">${value.toLocaleString()}</p>${deltaHtml}</div>`;
+        return `<div class="kpi-card"><p class="kpi-label">${m}</p><div class="kpi-value-row"><p class="kpi-value">${value.toLocaleString()}</p>${deltaHtml}</div></div>`;
       })
       .join('');
   }
 
-  private renderReportTiles(): string {
-    return REPORT_TILES.map((tile) => {
-      const expanded = tile.key === this.expandedTileKey;
-      return html`
-        <report-shortcut-tile data-tile-key="${tile.key}" ${expanded ? 'data-expanded' : ''}>
-          ${expanded ? SafeHtmlString.trusted(`<report-breakdown data-breakdown-key="${tile.key}"></report-breakdown>`) : ''}
-        </report-shortcut-tile>
-      `;
-    }).join('');
+  private renderShortcuts(): string {
+    const tabs = [
+      { id: 'DAY', label: 'P BY DAY' },
+      { id: 'EXCHANGE', label: 'P BY EXCHANGE' },
+      { id: 'OS', label: 'P BY OS' },
+      { id: 'CAMPAIGN', label: 'P BY CAMPAIGN' },
+      { id: 'CREATIVE', label: 'P BY CREATIVE' },
+    ];
+    const buttons = tabs.map(t => 
+      `<button class="shortcut-card ${this.activeShortcut === t.id ? 'active' : ''}" data-shortcut="${t.id}" type="button">${t.label}</button>`
+    ).join('');
+    
+    return `<div class="shortcuts-row">${buttons}</div>`;
+  }
+  
+  private renderBreakdown(): string {
+    if (!this.activeShortcut) return '';
+    
+    return `
+      <div class="breakdown-section">
+        <div class="breakdown-header">
+          <select class="breakdown-filter">
+            <option>FILTER ↓</option>
+            <option>Impressions</option>
+            <option>Spend</option>
+          </select>
+        </div>
+        <div class="breakdown-chart-container">
+          <chart-widget class="breakdown-chart"></chart-widget>
+        </div>
+      </div>
+    `;
   }
 
   protected renderTemplate(): string {
@@ -457,28 +614,44 @@ class DashboardPageElement extends BaseComponent {
     }
 
     return html`
-      <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard</h1>
-        <div class="dashboard-controls">
-          <period-selector></period-selector>
-        </div>
-      </div>
-      <div class="insight-line">${this.summary.insight}</div>
-      <kpi-metric-picker></kpi-metric-picker>
-      <div class="kpi-grid">${SafeHtmlString.trusted(this.renderKpiCards())}</div>
-      <div class="chart-section">
-        <div class="chart-header">
-          <p class="chart-title">Performance Overview</p>
-          <div class="chart-type-toggle">
-            <button class="chart-type-btn ${this.chartType === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
-            <button class="chart-type-btn ${this.chartType === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
-            <button class="chart-type-btn ${this.chartType === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+      <div class="dashboard-content">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">Dashboard</h1>
+          <div class="dashboard-controls">
+            <period-selector></period-selector>
           </div>
         </div>
-        <chart-widget></chart-widget>
+        
+        <div class="kpi-grid">${SafeHtmlString.trusted(this.renderFixedKpiCards())}</div>
+        <div class="insight-line">${this.summary.insight}</div>
+        
+        <div class="picker-container">
+          <kpi-metric-picker></kpi-metric-picker>
+        </div>
+        
+        <div class="chart-section">
+          <div class="chart-header">
+            <p class="chart-title">Performance Overview</p>
+            <div class="chart-type-toggle">
+              <button class="chart-type-btn ${this.chartType === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
+              <button class="chart-type-btn ${this.chartType === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
+              <button class="chart-type-btn ${this.chartType === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+            </div>
+          </div>
+          <chart-widget></chart-widget>
+        </div>
+        
+        ${SafeHtmlString.trusted(this.renderShortcuts())}
+        ${SafeHtmlString.trusted(this.renderBreakdown())}
+
+        <div class="campaigns-section">
+          <h2 class="section-title">Best Performing Campaigns</h2>
+          <data-table class="campaigns-table"></data-table>
+        </div>
       </div>
-      <div class="report-tiles">${SafeHtmlString.trusted(this.renderReportTiles())}</div>
-      <ai-suggestion-popup></ai-suggestion-popup>
+      
+      <button class="floating-ai-btn" data-action="toggle-sidebar" type="button" aria-label="Toggle AI Insights">AI</button>
+      ${this.isSidebarOpen ? SafeHtmlString.trusted('<ai-suggestion-sidebar></ai-suggestion-sidebar>') : ''}
     `;
   }
 }

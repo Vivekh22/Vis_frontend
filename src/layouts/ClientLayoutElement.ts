@@ -25,7 +25,34 @@ import { SIDEBAR_STYLES } from './sidebarStyles';
 const STYLES = `
   :host { display: flex; height: 100vh; overflow: hidden; font-family: var(--font-body); }
   ${SIDEBAR_STYLES}
-  .sidebar { width: 240px; }
+  .sidebar { 
+    width: 240px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+  }
+  .sidebar.collapsed {
+    width: 0;
+    border-right: none;
+  }
+  .hamburger-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    padding: var(--space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    transition: background 0.2s;
+  }
+  .hamburger-btn:hover {
+    background: var(--color-surface-2);
+  }
   .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--color-bg); }
   .topbar {
     display: flex;
@@ -65,6 +92,7 @@ const CLIENT_NAV_GROUPS = [
     items: [
       { label: 'Campaigns', path: '/client/campaigns' },
       { label: 'Creatives', path: '/client/creatives' },
+      { label: 'Bid Multiplier', path: '/client/bid-multiplier' },
       { label: 'App Lists', path: '/client/app-lists' },
       { label: 'Audience Lists', path: '/client/audiences' },
     ]
@@ -94,6 +122,7 @@ const LOW_NETWORK_ALLOWED = ['Dashboard', 'Campaigns'];
 class ClientLayoutElement extends BaseComponent {
   private _user: User | null = null;
   private isLowNetwork = false;
+  private isSidebarCollapsed = false;
   private unsubscribeConnectivity: (() => void) | null = null;
 
   constructor() {
@@ -111,7 +140,17 @@ class ClientLayoutElement extends BaseComponent {
     return this._user;
   }
 
+  
+  private handleLayoutClick = (e: Event): void => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-action="toggle-sidebar"]')) {
+      this.isSidebarCollapsed = !this.isSidebarCollapsed;
+      this.rerender();
+    }
+  };
+
   protected onMount(): void {
+    this.shadow.addEventListener('click', this.handleLayoutClick);
     connectivityStore.init();
     const state = connectivityStore.getState();
     this.isLowNetwork = state.isLowNetwork;
@@ -133,6 +172,7 @@ class ClientLayoutElement extends BaseComponent {
       this.unsubscribeConnectivity();
       this.unsubscribeConnectivity = null;
     }
+    this.shadow.removeEventListener('click', this.handleLayoutClick);
     connectivityStore.destroy();
   }
 
@@ -140,15 +180,8 @@ class ClientLayoutElement extends BaseComponent {
     const nav = this.query<any>('collapsible-nav');
     if (!nav) return;
     
-    // Filter items based on low network
-    const filteredGroups = CLIENT_NAV_GROUPS.map(group => ({
-      ...group,
-      items: group.items.filter(item => 
-        !this.isLowNetwork || LOW_NETWORK_ALLOWED.includes(item.label)
-      )
-    })).filter(group => group.items.length > 0);
-    
-    nav.groups = filteredGroups;
+    // Do not filter out items during development; make all pages visible
+    nav.groups = CLIENT_NAV_GROUPS;
     nav.currentPath = window.location.pathname;
   }
 

@@ -63,19 +63,21 @@ const STYLES = `
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
   }
-  .bar { fill: var(--color-primary); }
-  .bar:hover { fill: var(--color-accent); }
-  .line { fill: none; stroke: var(--color-primary); stroke-width: 2; }
-  .area { fill: rgba(79, 70, 229, 0.15); stroke: var(--color-primary); stroke-width: 2; }
+  .bar { fill: url(#barGradient); filter: url(#glow); transition: all 0.3s ease; }
+  .bar:hover { filter: brightness(1.2) url(#glow); }
+  .bar-track-bg { fill: rgba(0, 0, 0, 0.04); }
+  .line { fill: none; stroke: url(#lineGrad1); stroke-width: 3; filter: url(#glow); }
+  .area { fill: url(#areaGrad); stroke: url(#lineGrad1); stroke-width: 3; filter: url(#glow); }
   .axis-label {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 600;
     fill: var(--color-text-muted);
     font-family: var(--font-body);
   }
   .grid-line {
     stroke: var(--color-border);
     stroke-width: 1;
-    stroke-dasharray: 3 3;
+    stroke-dasharray: 4 4;
   }
   .horizontal-bars { display: flex; flex-direction: column; width: 100%; }
   .bar-row { display: flex; align-items: center; margin-bottom: var(--space-2); }
@@ -92,11 +94,15 @@ const STYLES = `
   .legend { display: flex; flex-direction: column; gap: var(--space-2); }
   .legend-item { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-primary); }
   .legend-color { width: 12px; height: 12px; border-radius: 2px; }
+  .axis-line {
+    stroke: var(--color-border);
+    stroke-width: 2;
+  }
 `;
 
-const PAD_LEFT = 56;
-const PAD_RIGHT = 28;
-const PAD_TOP = 20;
+const PAD_LEFT = 50;
+const PAD_RIGHT = 30;
+const PAD_TOP = 30;
 const PAD_BOTTOM = 40;
 const MAX_X_LABELS = 8;
 const DEFAULT_WIDTH = 800;
@@ -219,10 +225,31 @@ class ChartWidgetElement extends BaseComponent {
     const yAxis = this.renderYAxis(ticks, innerHeight, dynamicPadLeft, dynamicPadBottom);
     const xStep = Math.ceil(this._data.length / MAX_X_LABELS);
 
+    const defs = `
+      <defs>
+        <linearGradient id="barGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" stop-color="#4ade80" />
+          <stop offset="100%" stop-color="#a3e635" />
+        </linearGradient>
+        <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#22d3ee" />
+          <stop offset="100%" stop-color="#34d399" />
+        </linearGradient>
+        <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.4" />
+          <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.0" />
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+    `;
+
     if (this._chartType === 'bar') {
-      return this.renderBarChart(scaleMax, innerHeight, barWidth, xStep, yAxis, dynamicPadLeft, dynamicPadBottom);
+      return defs + this.renderBarChart(scaleMax, innerHeight, barWidth, xStep, yAxis, dynamicPadLeft, dynamicPadBottom);
     }
-    return this.renderLineOrAreaChart(scaleMax, innerWidth, innerHeight, xStep, yAxis, dynamicPadLeft, dynamicPadBottom);
+    return defs + this.renderLineOrAreaChart(scaleMax, innerWidth, innerHeight, xStep, yAxis, dynamicPadLeft, dynamicPadBottom);
   }
 
   private renderYAxis(ticks: number[], innerHeight: number, padLeft: number, padBottom: number): string {
@@ -250,21 +277,28 @@ class ChartWidgetElement extends BaseComponent {
       const barHeight = (d.value / max) * innerHeight;
       const x = padLeft + i * barWidth + barWidth * 0.1;
       const y = this._viewHeight - padBottom - barHeight;
-      const w = barWidth * 0.8;
+      const w = barWidth * 0.6;
+      const rx = w / 2;
       const labelX = padLeft + i * barWidth + barWidth / 2;
       const xLabel = this.shouldRenderXLabel(i, xStep)
         ? SafeHtmlString.trusted(`<text class="axis-label" x="${labelX}" y="${this._viewHeight - padBottom + 18}" text-anchor="middle">${d.label}</text>`)
         : '';
       return SafeHtmlString.trusted(
         `<g>` +
-        `<rect class="bar" x="${x}" y="${y}" width="${w}" height="${barHeight}" rx="2">` +
+        `<rect class="bar-track-bg" x="${x}" y="${PAD_TOP}" width="${w}" height="${innerHeight}" rx="${rx}" />` +
+        `<rect class="bar" x="${x}" y="${y}" width="${w}" height="${barHeight}" rx="${rx}">` +
         `<title>${d.label} - Value: ${formatAxisValue(d.value, this._format)}</title>` +
         `</rect>` +
+        `<text class="axis-label" x="${labelX}" y="${y - 8}" text-anchor="middle" style="fill: var(--color-text-primary);">${d.value}</text>` +
         xLabel +
         `</g>`
       );
     }).join('');
-    return `<svg viewBox="0 0 ${this._viewWidth} ${this._viewHeight}" preserveAspectRatio="none">${yAxis}${bars}</svg>`;
+    
+    const xAxisLine = `<line class="axis-line" x1="${padLeft}" y1="${this._viewHeight - padBottom}" x2="${this._viewWidth - PAD_RIGHT}" y2="${this._viewHeight - padBottom}" />`;
+    const yAxisLine = `<line class="axis-line" x1="${padLeft}" y1="${PAD_TOP}" x2="${padLeft}" y2="${this._viewHeight - padBottom}" />`;
+
+    return `<svg viewBox="0 0 ${this._viewWidth} ${this._viewHeight}">${yAxisLine}${xAxisLine}${yAxis}${bars}</svg>`;
   }
 
   private renderLineOrAreaChart(max: number, innerWidth: number, innerHeight: number, xStep: number, yAxis: string, padLeft: number, padBottom: number): string {
@@ -290,13 +324,16 @@ class ChartWidgetElement extends BaseComponent {
     // Add interactive dots with tooltips
     const dots = points.map((p) => SafeHtmlString.trusted(
       `<g>` +
-      `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--color-primary)">` +
+      `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#fff" stroke="url(#lineGrad1)" stroke-width="2" filter="url(#glow)">` +
       `<title>${p.label} - Value: ${formatAxisValue(p.value, this._format)}</title>` +
       `</circle>` +
       `</g>`
     )).join('');
 
-    return `<svg viewBox="0 0 ${this._viewWidth} ${this._viewHeight}" preserveAspectRatio="none">${yAxis}${areaPath}${linePath}${dots}${labels}</svg>`;
+    const xAxisLine = `<line class="axis-line" x1="${padLeft}" y1="${this._viewHeight - padBottom}" x2="${this._viewWidth - PAD_RIGHT}" y2="${this._viewHeight - padBottom}" />`;
+    const yAxisLine = `<line class="axis-line" x1="${padLeft}" y1="${PAD_TOP}" x2="${padLeft}" y2="${this._viewHeight - padBottom}" />`;
+
+    return `<svg viewBox="0 0 ${this._viewWidth} ${this._viewHeight}">${yAxisLine}${xAxisLine}${yAxis}${areaPath}${linePath}${dots}${labels}</svg>`;
   }
 
   private renderHorizontalBarChart(): string {

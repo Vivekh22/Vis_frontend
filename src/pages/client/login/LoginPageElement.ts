@@ -60,14 +60,7 @@ const STYLES = `
 `;
 
 class LoginPageElement extends BaseComponent {
-  private email = '';
-  private password = '';
-  private rememberMe = false;
-  private loginError: string | null = null;
   private isSubmitting = false;
-  private showForgotPanel = false;
-  private forgotEmail = '';
-  private forgotSent = false;
 
   constructor() {
     super();
@@ -76,147 +69,62 @@ class LoginPageElement extends BaseComponent {
   }
 
   protected onMount(): void {
-    this.shadow.addEventListener('value-changed', this.handleValueChanged);
-    this.shadow.addEventListener('input', this.handleInput);
     this.shadow.addEventListener('click', this.handleClick);
-    this.applyPasswordType();
   }
 
   protected onUnmount(): void {
-    this.shadow.removeEventListener('value-changed', this.handleValueChanged);
-    this.shadow.removeEventListener('input', this.handleInput);
     this.shadow.removeEventListener('click', this.handleClick);
   }
 
-  private applyPasswordType(): void {
-    const pwField = this.shadow.querySelector<HTMLElement & { inputType: string }>('[data-field-name="password"]');
-    if (pwField) pwField.inputType = 'password';
-  }
-
-  private handleValueChanged = (event: Event): void => {
-    const target = event.target as HTMLElement;
-    const fieldName = target.getAttribute('data-field-name');
-    if (!fieldName) return;
-    const value = (event as CustomEvent<string>).detail;
-    if (fieldName === 'email') this.email = value;
-    else if (fieldName === 'password') this.password = value;
-    else if (fieldName === 'forgotEmail') this.forgotEmail = value;
-
-    if (this.loginError) {
-      this.loginError = null;
-      const errorEl = this.shadow.querySelector('.error-banner');
-      if (errorEl) errorEl.remove();
-    }
-
-    const loginBtn = this.shadow.querySelector<HTMLButtonElement>('[data-action="login"]');
-    if (loginBtn) {
-      loginBtn.disabled = !(this.isValid() && !this.isSubmitting);
-    }
-  };
-
-  private handleInput = (event: Event): void => {
-    const target = event.target as HTMLInputElement;
-    if (target.getAttribute('data-field-name') === 'rememberMe') {
-      this.rememberMe = target.checked;
-    }
-  };
-
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
-    if (target.closest('[data-action="login"]')) {
-      void this.handleLogin();
-    } else if (target.closest('[data-action="forgot"]')) {
-      this.showForgotPanel = !this.showForgotPanel;
-      this.forgotSent = false;
-      this.rerender();
-    } else if (target.closest('[data-action="send-reset"]')) {
-      this.handleForgotPassword();
-    } else if (target.closest('[data-action="dev-bypass"]')) {
-      void this.handleDevBypass();
+    if (target.closest('[data-action="client-login"]')) {
+      void this.handleDevLogin('client@vispriscaads.com');
+    } else if (target.closest('[data-action="admin-login"]')) {
+      void this.handleDevLogin('admin@vispriscaads.com');
+    } else if (target.closest('[data-action="super-admin-login"]')) {
+      void this.handleDevLogin('superadmin@vispriscaads.com');
     }
   };
 
-  private async handleDevBypass(): Promise<void> {
-    this.email = 'superadmin@vispriscaads.com';
-    this.password = 'dev-bypass';
-    await this.handleLogin();
-  }
-
-  private async handleLogin(): Promise<void> {
-    if (!this.isValid() || this.isSubmitting) return;
+  private async handleDevLogin(email: string): Promise<void> {
+    if (this.isSubmitting) return;
     this.isSubmitting = true;
-    this.loginError = null;
     this.rerender();
-    // rememberMe: when false, backend should issue a 12-hour session token.
-    // This is a frontend assumption about backend behavior — see file header.
-    void this.rememberMe;
+    
     try {
-      const user = await authService.login(this.email, this.password);
+      const user = await authService.login(email, 'password');
       // Role-based redirect — role comes from the backend response, not guessed.
       const role = user.role;
       if (role === 'admin') navigate('/admin/overview');
       else if (role === 'super-admin') navigate('/super-admin/overview');
       else navigate('/client/dashboard');
-    } catch {
-      this.loginError = 'Invalid email or password.';
+    } catch (err) {
+      console.error('Dev login failed:', err);
     }
+    
     this.isSubmitting = false;
     this.rerender();
   }
 
-  private handleForgotPassword(): void {
-    if (!isValidEmail(this.forgotEmail)) return;
-    // Minimal flow: show confirmation message. Full reset flow may need spec clarification.
-    this.forgotSent = true;
-    this.rerender();
-  }
-
-  private isValid(): boolean {
-    return isValidEmail(this.email) && isNotEmpty(this.password);
-  }
-
   protected renderTemplate(): string {
-    const fieldHtml = (name: string, label: string, inputType?: string) =>
-      `<text-field data-field-name="${name}" label="${label}"${inputType ? ` input-type="${inputType}"` : ''}></text-field>`;
-
-    // Note: inputType is set programmatically in syncFieldValues via applyPasswordType
-    // because TextFieldElement's inputType is a JS property, not an HTML attribute.
     return html`
-      <h1 class="login-title">Welcome Back</h1>
-      <p class="login-subtitle">Log in to your VispriscaAds account.</p>
+      <h1 class="login-title">Development Mode</h1>
+      <p class="login-subtitle">Choose a role to log in as.</p>
       
-      <!-- DEV-ONLY BYPASS -->
-      <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px;">
-        <strong style="color: #664d03; display: block; margin-bottom: 8px;">[DEV-ONLY] Quick Login Bypass</strong>
-        <button type="button" data-action="dev-bypass" class="login-btn" style="background: #000; color: #fff; width: 100%;">
-          Log in directly as Super Admin
+      <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+        <button type="button" data-action="client-login" class="login-btn" style="background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); padding: 15px;">
+          Log in as Client
+        </button>
+        <button type="button" data-action="admin-login" class="login-btn" style="background: var(--color-primary); color: var(--color-primary-foreground); padding: 15px;">
+          Log in as Admin
+        </button>
+        <button type="button" data-action="super-admin-login" class="login-btn" style="background: #000; color: #fff; padding: 15px;">
+          Log in as Super Admin
         </button>
       </div>
-
-      <div class="field-group">
-        ${SafeHtmlString.trusted(fieldHtml('email', 'Email or User ID'))}
-        ${SafeHtmlString.trusted(fieldHtml('password', 'Password'))}
-        <div class="options-row">
-          <label class="checkbox-label">
-            <input type="checkbox" data-field-name="rememberMe">
-            Remember me (12-hour session)
-          </label>
-          <span class="forgot-link" data-action="forgot">Forgot password?</span>
-        </div>
-        ${this.loginError ? SafeHtmlString.trusted(`<p class="error-banner">${this.loginError}</p>`) : ''}
-        <button type="button" class="login-btn" data-action="login" ${this.isValid() && !this.isSubmitting ? '' : 'disabled'}>
-          ${this.isSubmitting ? 'Logging in...' : 'Login'}
-        </button>
-      </div>
-
-      ${this.showForgotPanel ? SafeHtmlString.trusted(`
-        <div class="forgot-panel">
-          ${this.forgotSent
-            ? `<p class="success-msg">If an account exists for ${this.forgotEmail}, a reset link has been sent.</p>`
-            : `<text-field data-field-name="forgotEmail" label="Email"></text-field>
-               <button type="button" class="login-btn" data-action="send-reset" style="margin-top: var(--space-3)">Send Reset Link</button>`}
-        </div>
-      `) : ''}
+      
+      ${this.isSubmitting ? SafeHtmlString.trusted('<p style="text-align:center; margin-top: 20px;">Logging in...</p>') : ''}
     `;
   }
 }

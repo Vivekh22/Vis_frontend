@@ -52,12 +52,14 @@ const STYLES = `
 interface ChartWidgetHost extends HTMLElement {
   data: { label: string; value: number }[];
   chartType: 'bar' | 'line' | 'area';
+  format: 'number' | 'currency';
   isLoading: boolean;
 }
 
 class OverviewPageElement extends BaseComponent {
   private isLoading = true;
   private kpiValues: Record<string, number> = {};
+  private chartData: { label: string; value: number }[] = [];
   private insight = '';
   private atRiskClients: ClientSummary[] = [];
   private pendingCount = 0;
@@ -86,9 +88,17 @@ class OverviewPageElement extends BaseComponent {
       } as never);
       this.kpiValues = summary.kpiValues;
       this.insight = summary.insight;
+      this.chartData = summary.chartData;
     } catch {
       this.kpiValues = { Spend: 45000, Revenue: 128000, ROAS: 2.84, Campaigns: 24 };
       this.insight = 'Spend rose 18% vs. previous period.';
+      // Mock chart data if backend fails
+      this.chartData = [
+        { label: 'Week 1', value: 10000 },
+        { label: 'Week 2', value: 12000 },
+        { label: 'Week 3', value: 11000 },
+        { label: 'Week 4', value: 12000 }
+      ];
     }
     try {
       this.atRiskClients = await clientService.listAtRiskClients(clientIds);
@@ -110,8 +120,9 @@ class OverviewPageElement extends BaseComponent {
   private syncChart(): void {
     const chart = this.shadow.querySelector<ChartWidgetHost>('chart-widget');
     if (chart) {
-      chart.data = Object.entries(this.kpiValues).map(([label, value]) => ({ label, value }));
-      chart.chartType = 'bar';
+      chart.data = this.chartData;
+      chart.chartType = 'line';
+      chart.format = 'currency';
       chart.isLoading = false;
     }
   }

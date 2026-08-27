@@ -29,7 +29,34 @@ import { SIDEBAR_STYLES } from './sidebarStyles';
 const STYLES = `
   :host { display: flex; height: 100vh; overflow: hidden; font-family: var(--font-body); }
   ${SIDEBAR_STYLES}
-  .sidebar { width: 260px; }
+  .sidebar { 
+    width: 260px; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+  }
+  .sidebar.collapsed {
+    width: 0;
+    border-right: none;
+  }
+  .hamburger-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    padding: var(--space-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    transition: background 0.2s;
+  }
+  .hamburger-btn:hover {
+    background: var(--color-surface-2);
+  }
   .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--color-bg); }
   .topbar {
     display: flex;
@@ -116,6 +143,7 @@ const SUPER_ADMIN_NAV: NavGroup[] = [
 
 class SuperAdminLayoutElement extends BaseComponent {
   private _user: User | null = null;
+  private isSidebarCollapsed = false;
 
   constructor() {
     super();
@@ -132,8 +160,23 @@ class SuperAdminLayoutElement extends BaseComponent {
     return this._user;
   }
 
+  
+  private handleLayoutClick = (e: Event): void => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-action="toggle-sidebar"]')) {
+      this.isSidebarCollapsed = !this.isSidebarCollapsed;
+      this.rerender();
+    }
+  };
+
   protected onMount(): void {
+    this.shadow.addEventListener('click', this.handleLayoutClick);
     this.updateNav();
+  }
+
+  
+  protected onUnmount(): void {
+    this.shadow.removeEventListener('click', this.handleLayoutClick);
   }
 
   protected rerender(): void {

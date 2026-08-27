@@ -90,6 +90,7 @@ const WORKLOAD_COLUMNS: ColumnDefinition[] = [
 class OverviewPageElement extends BaseComponent {
   private workloadData: AdminWorkloadEntry[] = [];
   private revenue: { revenue: number; growth: number } | null = null;
+  private chartData: { label: string; value: number }[] = [];
   private managedSpend: number = 0;
   private newClients: number = 0;
   private churnedClients: number = 0;
@@ -144,6 +145,19 @@ class OverviewPageElement extends BaseComponent {
     }
 
     try {
+      const summary = await dashboardService.getDashboardSummary(this.currentRange, ['Revenue']);
+      this.chartData = summary.chartData;
+    } catch {
+      // Mock data if failed
+      this.chartData = [
+        { label: 'Week 1', value: 20000 },
+        { label: 'Week 2', value: 22000 },
+        { label: 'Week 3', value: 21000 },
+        { label: 'Week 4', value: 21200 }
+      ];
+    }
+
+    try {
       this.workloadData = await dashboardService.getAdminWorkload();
     } catch {
       this.workloadData = [];
@@ -184,42 +198,7 @@ class OverviewPageElement extends BaseComponent {
     this.syncChildComponents();
   }
 
-  private getTrendData(): { label: string; value: number }[] {
-    // Generate mock trend data based on current revenue, with labels
-    // derived from the selected range's granularity (hourly for ≤1D,
-    // day-of-week for ≤7D, MM/DD for longer ranges).
-    const dayDiff = Math.max(1, Math.round((this.currentRange.end.getTime() - this.currentRange.start.getTime()) / 86400000));
-    const points = dayDiff <= 1 ? 24 : (dayDiff <= 7 ? 7 : 30);
-    const baseValue = (this.revenue?.revenue ?? 10000) / points;
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const trend = [];
-    for (let i = 0; i < points; i++) {
-      const label = this.formatTrendLabel(i, points, dayDiff, days);
-      trend.push({
-        label,
-        value: baseValue * (0.8 + Math.random() * 0.4) // +/- 20% variance
-      });
-    }
-    return trend;
-  }
 
-  private formatTrendLabel(index: number, points: number, dayDiff: number, days: string[]): string {
-    const d = new Date(this.currentRange.end);
-    if (dayDiff <= 1) {
-      // Hourly granularity (e.g. "12 AM", "1 PM")
-      const stepHours = 24 / points;
-      const hours = Math.floor(index * stepHours);
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const h = hours % 12 || 12;
-      return `${h} ${ampm}`;
-    }
-    if (dayDiff <= 7) {
-      d.setDate(d.getDate() - (points - 1 - index));
-      return days[d.getDay()] as string;
-    }
-    d.setDate(d.getDate() - (points - 1 - index));
-    return `${d.getMonth() + 1}/${d.getDate()}`;
-  }
 
   private syncChildComponents(): void {
     const leaderboardTable = this.shadow.querySelector<DataTableHost>('data-table[data-id="leaderboard"]');
@@ -253,7 +232,12 @@ class OverviewPageElement extends BaseComponent {
     if (chart) {
       chart.chartType = 'line';
       chart.format = 'currency';
-      chart.data = this.getTrendData();
+      chart.data = this.chartData;
+    }
+
+    const periodSelector = this.shadow.querySelector<HTMLElement & { selectedPeriod: string }>('period-selector');
+    if (periodSelector) {
+      periodSelector.selectedPeriod = this.currentPeriod;
     }
   }
 
@@ -285,7 +269,7 @@ class OverviewPageElement extends BaseComponent {
                 ${this.revenue ? (this.revenue.growth > 0 ? '+' : '') + this.revenue.growth + '% vs last period' : '—'}
               </p>
             </div>
-            <period-selector selected-period="${this.currentPeriod}"></period-selector>
+            <period-selector></period-selector>
           </div>
           <div class="revenue-chart-container">
             <chart-widget></chart-widget>

@@ -179,13 +179,13 @@ class AppListPageElement extends BaseComponent {
     return html`
       <div class="page-header">
         <h1 class="page-title">App Lists</h1>
-        <button class="create-btn" data-action="create" type="button">+ Create App List</button>
+        <button class="create-btn" data-action="create" type="button">+ Create New App List</button>
       </div>
       ${this.crossClientMode ? SafeHtmlString.trusted(this.renderClientFilter()) : ''}
       <div class="table-container">
         <table>
           <thead>
-            <tr>${this.crossClientMode ? '<th>Client</th>' : ''}<th>App List ID</th><th>Name</th><th>No. of Apps</th><th>White Listed</th><th>Black Listed</th><th>Created Date</th></tr>
+            <tr>${this.crossClientMode ? '<th>Client</th>' : ''}<th>App List ID</th><th>App List Name</th><th>No. of Apps</th><th>White Listed</th><th>Black Listed</th><th>Created Date</th></tr>
           </thead>
           <tbody>
             ${SafeHtmlString.trusted(this.renderRows())}
@@ -229,7 +229,7 @@ class AppListPageElement extends BaseComponent {
           <button class="close-btn" data-action="cancel" type="button">×</button>
           <h2 class="drawer-title">Create App List</h2>
           <div class="field-group">
-            <label class="field-label">List Name</label>
+            <label class="field-label">App List Name</label>
             <input type="text" class="field-input" data-field="listName" value="${this.listName}" placeholder="My Whitelist">
           </div>
           <div class="field-group">
@@ -240,7 +240,7 @@ class AppListPageElement extends BaseComponent {
             </select>
           </div>
           <div class="field-group">
-            <label class="field-label">App Bundles (type or paste)</label>
+            <label class="field-label">App Bundle</label>
             <tag-input data-field="appBundles" placeholder="com.example.app"></tag-input>
           </div>
           <div class="field-group">
@@ -252,7 +252,7 @@ class AppListPageElement extends BaseComponent {
             <tag-input data-field="urls" placeholder="https://example.com"></tag-input>
           </div>
           <div class="drawer-actions">
-            <button class="save-btn" data-action="save" type="button" ${this.canSave ? '' : 'disabled'}>Create</button>
+            <button class="save-btn" data-action="save" type="button" ${this.canSave ? '' : 'disabled'}>Save</button>
             <button class="cancel-btn" data-action="cancel" type="button">Cancel</button>
           </div>
         </div>
