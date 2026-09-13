@@ -152,7 +152,7 @@ class StepReview extends BaseComponent implements StepComponent {
           </div>
           <div class="summary-row"><span class="summary-key">Platforms:</span><span class="summary-val">${d.platforms.join(', ') || '—'}</span></div>
           <div class="summary-row"><span class="summary-key">Budget:</span><span class="summary-val">$${d.budget}</span></div>
-          <div class="summary-row"><span class="summary-key">Bid:</span><span class="summary-val">$${d.bid}</span></div>
+          <div class="summary-row"><span class="summary-key">Target Bid:</span><span class="summary-val">$${d.targetBids}</span></div>
         </div>
         <div class="summary-section">
           <div class="summary-header">

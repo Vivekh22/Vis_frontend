@@ -30,25 +30,66 @@ const TABS = ['bank', 'company', 'address', 'reg', 'team', 'history'] as const;
 type Tab = (typeof TABS)[number];
 
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6); }
-  .tabs { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-6); flex-wrap: wrap; }
-  .tab { padding: var(--space-2) var(--space-4); border: none; background: none; cursor: pointer; font-size: var(--font-size-sm); font-family: var(--font-body); color: var(--color-text-muted); border-bottom: 2px solid transparent; }
-  .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: var(--font-weight-semibold); }
-  .tab-content { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
-  .form-group { margin-bottom: var(--space-3); }
-  .form-label { font-size: var(--font-size-xs); color: var(--color-text-muted); display: block; margin-bottom: var(--space-1); }
-  .form-input { width: 100%; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-sm); background: var(--color-bg); color: var(--color-text-primary); }
-  .form-input.readonly { background: var(--color-surface-2); color: var(--color-text-muted); cursor: default; }
-  .field-row { display: flex; align-items: center; gap: var(--space-2); }
-  .reveal-btn { padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-xs); color: var(--color-text-primary); white-space: nowrap; }
-  .btn { padding: var(--space-2) var(--space-4); background: var(--color-primary); color: var(--color-primary-foreground); border: none; border-radius: var(--radius-md); cursor: pointer; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-  .btn.secondary { background: var(--color-bg); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+  :host { display: block; font-family: var(--font-body); padding: var(--space-4) 0; }
+
+  /* Header */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 24px; font-weight: var(--font-weight-bold); color: #111827; margin: 0 0 4px 0; }
+  .page-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; gap: 4px; background: #f8fafc; border: 1px solid #eef0f4; border-radius: 10px; padding: 4px; margin-bottom: 24px; width: fit-content; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; font-family: var(--font-body); color: #6b7280; border-radius: 7px; transition: all 0.2s; white-space: nowrap; }
+  .tab.active { background: white; color: #111827; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .tab:hover:not(.active) { color: #374151; background: #f1f5f9; }
+
+  /* Card */
+  .card { background: white; border: 1px solid #eef0f4; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .card-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0 0 20px 0; }
+
+  /* Forms */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.single { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: #fcfdfd; color: #1e293b; outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-color: #3b66f5; background: white; }
+  .form-input[readonly] { background: #f8fafc; color: #64748b; cursor: default; }
+  .field-row { display: flex; align-items: center; gap: 8px; }
+  .field-row .form-input { flex: 1; }
+  .reveal-btn { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; font-weight: 500; color: #374151; white-space: nowrap; }
+  .reveal-btn:hover { background: #f8fafc; }
+
+  /* Buttons */
+  .btn-primary { padding: 10px 20px; background: #3b66f5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; margin-top: 8px; }
+  .btn-secondary { padding: 8px 16px; background: white; color: #374151; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+
+  /* Readonly Notice */
+  .readonly-notice { display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: #92400e; }
+
+  /* Table */
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
-  th { font-weight: var(--font-weight-semibold); color: var(--color-text-muted); text-transform: uppercase; font-size: var(--font-size-xs); }
-  .owner-badge { background: var(--color-primary); color: var(--color-primary-foreground); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
-  .readonly-notice { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; margin-bottom: var(--space-3); }
+  th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+  th { font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; background: #fcfdfd; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Team & History */
+  .owner-badge { background: #eff3ff; color: #3b66f5; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .member-name { font-weight: 600; color: #111827; }
+  .member-email { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .history-action { font-weight: 500; color: #111827; }
+  .history-actor { font-size: 12px; color: #64748b; }
+
+  /* Toggle */
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8fafc; }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 13px; color: #374151; font-weight: 500; }
+  .toggle { position: relative; width: 40px; height: 20px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #e2e8f0; border-radius: 20px; transition: 0.3s; }
+  .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle input:checked + .toggle-slider { background: #3b66f5; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
 `;
 
 class AccDetailsPageElement extends BaseComponent {
@@ -123,26 +164,28 @@ class AccDetailsPageElement extends BaseComponent {
 
   private renderBankTab(): string {
     return `
-      <div class="form-group">
-        <label class="form-label">Bank Name</label>
-        <input class="form-input" type="text" value="${this.bankDetails.bankName}" readonly />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Account Holder Name</label>
-        <input class="form-input" type="text" value="${this.bankDetails.accountName}" readonly />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Account Number</label>
-        <div class="field-row">
-          <input class="form-input" type="text" value="${formatBankField(this.bankDetails.accountNumber, this.revealAccountNumber)}" readonly />
-          <button class="reveal-btn" data-action="reveal-account" type="button">${this.revealAccountNumber ? 'Hide' : 'Reveal'}</button>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Bank Name</label>
+          <input class="form-input" type="text" value="${this.bankDetails.bankName}" readonly />
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Routing Number</label>
-        <div class="field-row">
-          <input class="form-input" type="text" value="${formatBankField(this.bankDetails.routingNumber, this.revealRoutingNumber)}" readonly />
-          <button class="reveal-btn" data-action="reveal-routing" type="button">${this.revealRoutingNumber ? 'Hide' : 'Reveal'}</button>
+        <div class="form-group">
+          <label class="form-label">Account Holder Name</label>
+          <input class="form-input" type="text" value="${this.bankDetails.accountName}" readonly />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Number</label>
+          <div class="field-row">
+            <input class="form-input" type="text" value="${formatBankField(this.bankDetails.accountNumber, this.revealAccountNumber)}" readonly />
+            <button class="reveal-btn" data-action="reveal-account" type="button">${this.revealAccountNumber ? '🙈 Hide' : '👁 Reveal'}</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Routing Number</label>
+          <div class="field-row">
+            <input class="form-input" type="text" value="${formatBankField(this.bankDetails.routingNumber, this.revealRoutingNumber)}" readonly />
+            <button class="reveal-btn" data-action="reveal-routing" type="button">${this.revealRoutingNumber ? '🙈 Hide' : '👁 Reveal'}</button>
+          </div>
         </div>
       </div>
     `;
@@ -150,38 +193,103 @@ class AccDetailsPageElement extends BaseComponent {
 
   private renderCompanyTab(): string {
     return `
-      <div class="form-group"><label class="form-label">Legal Name</label><input class="form-input" type="text" value="${this.companyDetails.legalName}" /></div>
-      <div class="form-group"><label class="form-label">Tax ID</label><input class="form-input" type="text" value="${this.companyDetails.taxId}" /></div>
-      <div class="form-group"><label class="form-label">Industry</label><input class="form-input" type="text" value="${this.companyDetails.industry}" /></div>
-      <div class="form-group"><label class="form-label">Website</label><input class="form-input" type="text" value="${this.companyDetails.website}" /></div>
-      <button class="btn" type="button">Save Changes</button>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Legal Name</label>
+          <input class="form-input" type="text" value="${this.companyDetails.legalName}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tax ID</label>
+          <input class="form-input" type="text" value="${this.companyDetails.taxId}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Industry</label>
+          <input class="form-input" type="text" value="${this.companyDetails.industry}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input class="form-input" type="text" value="${this.companyDetails.website}" />
+        </div>
+      </div>
+      <button class="btn-primary" type="button">Save Changes</button>
     `;
   }
 
   private renderAddressTab(): string {
     return `
-      <div class="form-group"><label class="form-label">Street</label><input class="form-input" type="text" value="${this.addressDetails.street}" /></div>
-      <div class="form-group"><label class="form-label">City</label><input class="form-input" type="text" value="${this.addressDetails.city}" /></div>
-      <div class="form-group"><label class="form-label">State/Province</label><input class="form-input" type="text" value="${this.addressDetails.state}" /></div>
-      <div class="form-group"><label class="form-label">Postal Code</label><input class="form-input" type="text" value="${this.addressDetails.postalCode}" /></div>
-      <div class="form-group"><label class="form-label">Country</label><input class="form-input" type="text" value="${this.addressDetails.country}" /></div>
-      <button class="btn" type="button">Save Changes</button>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Street Address</label>
+          <input class="form-input" type="text" value="${this.addressDetails.street}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input class="form-input" type="text" value="${this.addressDetails.city}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">State / Province</label>
+          <input class="form-input" type="text" value="${this.addressDetails.state}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Postal Code</label>
+          <input class="form-input" type="text" value="${this.addressDetails.postalCode}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <input class="form-input" type="text" value="${this.addressDetails.country}" />
+        </div>
+      </div>
+      <button class="btn-primary" type="button">Save Changes</button>
     `;
   }
 
   /** Reg Details tab — READ-ONLY. No edit form exists. */
   private renderRegTab(): string {
     return `
-      <p class="readonly-notice">Registration details are permanent and cannot be edited.</p>
-      <div class="form-group"><label class="form-label">Registration Number</label><input class="form-input readonly" type="text" value="${this.regDetails.registrationNumber}" readonly /></div>
-      <div class="form-group"><label class="form-label">Date of Incorporation</label><input class="form-input readonly" type="text" value="${this.regDetails.dateOfIncorporation}" readonly /></div>
-      <div class="form-group"><label class="form-label">Jurisdiction</label><input class="form-input readonly" type="text" value="${this.regDetails.jurisdiction}" readonly /></div>
-      <div class="form-group"><label class="form-label">PAN Number</label><input class="form-input readonly" type="text" value="${this.regDetails.panNumber}" readonly /></div>
+      <div class="readonly-notice">⚠ Registration details are permanent and cannot be edited.</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Registration Number</label>
+          <input class="form-input" type="text" value="${this.regDetails.registrationNumber}" readonly />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Incorporation</label>
+          <input class="form-input" type="text" value="${this.regDetails.dateOfIncorporation}" readonly />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jurisdiction</label>
+          <input class="form-input" type="text" value="${this.regDetails.jurisdiction}" readonly />
+        </div>
+        <div class="form-group">
+          <label class="form-label">PAN Number</label>
+          <input class="form-input" type="text" value="${this.regDetails.panNumber}" readonly />
+        </div>
+      </div>
     `;
   }
 
   private renderTeamTab(): string {
-    return `<team-members-table client-id="client-1"></team-members-table>`;
+    const members = this.teamMembers.length > 0 ? this.teamMembers : [
+      { id: 't1', name: 'Priya Sharma', email: 'priya@vispriscaads.example', role: 'Owner', status: 'active' },
+      { id: 't2', name: 'Rohan Mehta', email: 'rohan@vispriscaads.example', role: 'Manager', status: 'active' },
+      { id: 't3', name: 'Ananya Kapoor', email: 'ananya@vispriscaads.example', role: 'Analyst', status: 'active' },
+    ];
+    const rows = (members as Array<{ id: string; name: string; email: string; role: string; status: string }>).map((m) => `
+      <tr>
+        <td>
+          <div class="member-name">${m.name}</div>
+          <div class="member-email">${m.email}</div>
+        </td>
+        <td>${m.role === 'Owner' ? `<span class="owner-badge">Owner</span>` : m.role}</td>
+        <td><div class="pill ${m.status === 'active' ? 'green' : 'gray'}">${m.status}</div></td>
+      </tr>
+    `).join('');
+    return `
+      <table>
+        <thead><tr><th>Team Member</th><th>Role</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   private renderHistoryTab(): string {
@@ -189,8 +297,9 @@ class AccDetailsPageElement extends BaseComponent {
       <table>
         <thead><tr><th>Date</th><th>Action</th><th>Actor</th></tr></thead>
         <tbody>
-          <tr><td>${new Date().toLocaleDateString()}</td><td>Profile updated</td><td>Client User</td></tr>
-          <tr><td>${new Date(Date.now() - 86400000).toLocaleDateString()}</td><td>Banking details updated</td><td>Client User</td></tr>
+          <tr><td class="history-actor">${new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td><td class="history-action">Profile updated</td><td class="history-actor">Priya Sharma</td></tr>
+          <tr><td class="history-actor">${new Date(Date.now() - 86400000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td><td class="history-action">Banking details updated</td><td class="history-actor">Priya Sharma</td></tr>
+          <tr><td class="history-actor">${new Date(Date.now() - 172800000).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td><td class="history-action">Team member added — Ananya Kapoor</td><td class="history-actor">Rohan Mehta</td></tr>
         </tbody>
       </table>
     `;
@@ -200,14 +309,18 @@ class AccDetailsPageElement extends BaseComponent {
     if (this._isLoading) {
       return html`<loading-state variant="skeleton" shape="card"></loading-state>`;
     }
-    const tabsHtml = TABS.map((t) => {
-      const labels: Record<Tab, string> = { bank: 'Bank Details', company: 'Company Details', address: 'Address', reg: 'Reg Details', team: 'Team Members', history: 'History' };
-      return `<button class="tab ${this.activeTab === t ? 'active' : ''}" data-tab="${t}" type="button">${labels[t]}</button>`;
-    }).join('');
+    const labels: Record<Tab, string> = { bank: 'Bank Details', company: 'Company Details', address: 'Address', reg: 'Reg Details', team: 'Team Members', history: 'History' };
+    const tabsHtml = TABS.map((t) => `<button class="tab ${this.activeTab === t ? 'active' : ''}" data-tab="${t}" type="button">${labels[t]}</button>`).join('');
     return html`
-      <h1 class="page-title">Account Details</h1>
-      <div class="tabs">${SafeHtmlString.trusted(tabsHtml)}</div>
-      <div class="tab-content">${SafeHtmlString.trusted(this.renderTabContent())}</div>
+      <div class="page-header">
+        <h1 class="page-title">Account Details</h1>
+        <p class="page-subtitle">Manage your organization's billing, legal, and team information</p>
+      </div>
+      <div class="tab-bar">${SafeHtmlString.trusted(tabsHtml)}</div>
+      <div class="card">
+        <p class="card-title">${labels[this.activeTab]}</p>
+        ${SafeHtmlString.trusted(this.renderTabContent())}
+      </div>
     `;
   }
 }

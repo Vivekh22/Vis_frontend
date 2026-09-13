@@ -14,10 +14,12 @@ import { isNotEmpty } from '../../../../../utils/validators';
 
 const STYLES = `
   :host { display: block; font-family: var(--font-body); }
+  * { box-sizing: border-box; }
   .step-content { display: flex; flex-direction: column; gap: var(--space-4); max-width: 800px; }
   .field { display: flex; flex-direction: column; gap: var(--space-1); }
   .field-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); }
   .field-input {
+    width: 100%;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -25,13 +27,14 @@ const STYLES = `
     font-family: var(--font-body);
     background: var(--color-bg);
   }
-  .top-actions { display: flex; gap: var(--space-4); align-items: center; }
-  .search-input-wrapper { position: relative; flex: 1; }
+  .top-actions { display: flex; gap: var(--space-4); align-items: stretch; }
+  .search-input-wrapper { position: relative; flex: 1; min-width: 0; }
   .search-input-wrapper svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); }
-  .search-input-wrapper input { width: 100%; padding-left: 36px; }
+  .search-input-wrapper input { padding-left: 36px; height: 100%; }
   .btn-create-new {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-2);
     padding: var(--space-2) var(--space-4);
     border: 1px solid var(--color-border);
@@ -40,23 +43,30 @@ const STYLES = `
     cursor: pointer;
     font-size: var(--font-size-sm);
     font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .btn-create-new.active { border-color: var(--color-primary); color: var(--color-primary); }
-  .radio-group { display: flex; gap: var(--space-4); align-items: center; margin-top: var(--space-4); }
+  .radio-group { display: flex; gap: var(--space-4); align-items: stretch; margin-top: var(--space-4); }
   .radio-card {
+    display: flex;
+    flex-direction: column;
     padding: var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     cursor: pointer;
     flex: 1;
     min-height: 120px;
+    background: var(--color-surface);
   }
   .radio-card.active { border-color: var(--color-primary); background: var(--color-surface-2); }
-  .radio-card-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-transform: uppercase; }
+  .radio-card-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-transform: uppercase; margin-bottom: var(--space-3); }
+  .radio-card-content { display: none; margin-top: auto; }
+  .radio-card.active .radio-card-content { display: block; }
   .checkbox-field { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); }
   .checkbox-field input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); }
   .helper-text { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; margin-top: var(--space-2); font-weight: 600; }
-  .or-divider { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-muted); }
+  .or-divider { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-muted); align-self: center; }
 `;
 
 class StepAdDomain extends BaseComponent implements StepComponent {
@@ -101,9 +111,13 @@ class StepAdDomain extends BaseComponent implements StepComponent {
     const target = event.target as HTMLElement;
     const radio = target.closest('[data-domain-mode]');
     if (!radio || !this._data) return;
-    const mode = radio.getAttribute('data-domain-mode') as 'app_bundle' | 'website';
+    const mode = radio.getAttribute('data-domain-mode') as 'app_bundle' | 'website' | 'create_new';
     if (mode && mode !== this._data.domainMode) {
       const newData = { ...this._data, domainMode: mode, enableSkadNetwork: mode === 'app_bundle' ? this._data.enableSkadNetwork : false };
+      // Clear out the domain field if we switch modes so we don't accidentally submit wrong domain type
+      if (['app_bundle', 'website'].includes(mode)) {
+        newData.domain = '';
+      }
       this._data = newData;
       this.rerender();
       this.emitDataChanged(newData);
@@ -120,10 +134,11 @@ class StepAdDomain extends BaseComponent implements StepComponent {
   }
 
   private isValid(data: CampaignFormData): boolean {
-    if (data.domainMode === 'create_new') {
-      return false; // Still need to select app bundle or website inside create_new
+    if (data.domainMode === 'create_new') return false; 
+    if (data.domainMode === 'app_bundle' || data.domainMode === 'website') {
+      return isNotEmpty(data.domain);
     }
-    return isNotEmpty(data.searchDomain) || isNotEmpty(data.domain) || data.domainMode !== undefined;
+    return isNotEmpty(data.searchDomain);
   }
 
   protected renderTemplate(): string {
@@ -143,10 +158,16 @@ class StepAdDomain extends BaseComponent implements StepComponent {
           <div class="radio-group">
             <div class="radio-card ${d.domainMode === 'app_bundle' ? 'active' : ''}" data-domain-mode="app_bundle">
               <div class="radio-card-label">APP BUNDLE</div>
+              <div class="radio-card-content">
+                <input type="text" class="field-input" data-field="domain" value="${d.domainMode === 'app_bundle' ? d.domain : ''}" placeholder="com.example.app">
+              </div>
             </div>
             <span class="or-divider">OR</span>
             <div class="radio-card ${d.domainMode === 'website' ? 'active' : ''}" data-domain-mode="website">
               <div class="radio-card-label">WEBSITE</div>
+              <div class="radio-card-content">
+                <input type="text" class="field-input" data-field="domain" value="${d.domainMode === 'website' ? d.domain : ''}" placeholder="https://example.com">
+              </div>
             </div>
           </div>
         `) : ''}

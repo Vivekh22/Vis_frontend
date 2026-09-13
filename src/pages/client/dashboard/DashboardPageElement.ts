@@ -83,20 +83,56 @@ const STYLES = `
     align-items: center;
     gap: var(--space-3);
   }
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-4);
+  .dashboard-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .global-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .filter-select {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .kpi-scroll-container {
+    display: flex;
+    gap: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .kpi-scroll-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  .kpi-scroll-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
   }
   .kpi-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: var(--space-3) var(--space-4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: 100px;
+    height: 52px;
+    flex: 0 0 auto;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.03);
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.02);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -110,8 +146,8 @@ const STYLES = `
     box-shadow: 0 8px 24px 0 rgba(0,0,0,0.06);
   }
   .kpi-label {
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.6rem;
+    font-weight: 700;
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -120,10 +156,11 @@ const STYLES = `
   .kpi-value-row {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    justify-content: space-between;
+    width: 100%;
   }
   .kpi-value {
-    font-size: 1.5rem;
+    font-size: 0.85rem;
     font-weight: 800;
     color: var(--color-text-primary);
     margin: 0;
@@ -133,10 +170,10 @@ const STYLES = `
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 6px;
+    padding: 2px 4px;
+    border-radius: 4px;
     background: rgba(0, 0, 0, 0.04);
   }
   .kpi-delta.up { color: #059669; background: rgba(16, 185, 129, 0.15); }
@@ -208,6 +245,67 @@ const STYLES = `
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.04);
   }
+  .compare-mode-section {
+    background: rgba(239, 246, 255, 0.7);
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    position: relative;
+  }
+  .compare-mode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  .compare-mode-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0;
+  }
+  .compare-mode-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #1e3a8a;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.7;
+  }
+  .compare-mode-close:hover { opacity: 1; }
+  .compare-charts-row {
+    display: flex;
+    gap: var(--space-4);
+  }
+  .compare-chart-col {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--space-3);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+  }
+  .compare-config-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .compare-config-title {
+    margin: 0;
+    margin-right: auto;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-transform: uppercase;
+  }
   .shortcut-card.active {
     background: var(--color-primary);
     color: #fff;
@@ -278,12 +376,40 @@ const STYLES = `
     margin-bottom: var(--space-5);
   }
   .chart-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--color-text-primary);
     margin: 0;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+  }
+  .chart-metric-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .btn-outline {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    cursor: pointer;
+  }
+  .btn-primary {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: var(--color-primary-light);
   }
   .chart-type-toggle {
     display: flex;
@@ -354,11 +480,15 @@ const STYLES = `
 class DashboardPageElement extends BaseComponent {
   private isLoading = true;
   private summary: DashboardSummary | null = null;
-  private selectedMetrics = ['Impressions', 'Clicks', 'Spend', 'Installs'];
-  private chartType: 'bar' | 'line' | 'area' = 'bar';
+  private widgets: { id: string; type: 'bar' | 'line' | 'area'; metrics: string[] }[] = [
+    { id: 'widget-0', type: 'bar', metrics: ['Impressions', 'Clicks', 'Spend', 'Installs'] }
+  ];
   private currentPeriod: DateRange = DateRange.fromPeriodOption('7d');
   private isSidebarOpen = false;
   private activeShortcut: 'DAY' | 'EXCHANGE' | 'OS' | 'CAMPAIGN' | 'CREATIVE' | null = null;
+  private isCompareDropdownOpen = false;
+  private isCompareModeOpen = false;
+  private compareModeSelection = '';
 
   constructor() {
     super();
@@ -394,7 +524,8 @@ class DashboardPageElement extends BaseComponent {
     this.rerender();
     this.syncLoadingState();
     try {
-      this.summary = await dashboardService.getDashboardSummary(this.currentPeriod, this.selectedMetrics);
+      const allMetrics = Array.from(new Set(this.widgets.flatMap(w => w.metrics)));
+      this.summary = await dashboardService.getDashboardSummary(this.currentPeriod, allMetrics);
     } catch {
       this.summary = null;
     }
@@ -435,18 +566,46 @@ class DashboardPageElement extends BaseComponent {
 
   private syncChildComponents(): void {
     if (this.isLoading || !this.summary) return;
-    const chart = this.shadow.querySelector<ChartWidgetHost>('chart-widget');
-    if (chart) {
-      chart.data = this.summary.chartData;
-      chart.chartType = this.chartType;
-      chart.format = 'currency';
-      chart.isLoading = false;
+    
+    this.widgets.forEach(w => {
+      const chart = this.shadow.querySelector<ChartWidgetHost>(`chart-widget[data-id="${w.id}"]`);
+      if (chart) {
+        // Create unique data for the widget based on its selected metrics
+        const scaleFactor = w.metrics.reduce((acc, m) => acc + m.length, 0) % 5 + 1;
+        const offset = w.metrics.includes('Spend') ? 1.5 : w.metrics.includes('Clicks') ? 0.3 : 1;
+        const modifiedData = this.summary!.chartData.map(point => ({
+          label: point.label,
+          value: point.value * scaleFactor * offset
+        }));
+
+        chart.data = modifiedData;
+        chart.chartType = w.type;
+        chart.format = 'currency';
+        chart.isLoading = false;
+      }
+      const picker = this.shadow.querySelector<KpiMetricPickerHost>(`kpi-metric-picker[data-id="${w.id}"]`);
+      if (picker) {
+        picker.selectedMetrics = w.metrics;
+        picker.deltas = this.summary!.deltas;
+      }
+    });
+
+    if (this.isCompareModeOpen) {
+      const comp1 = this.shadow.querySelector<ChartWidgetHost>('chart-widget[data-id="compare-1"]');
+      const comp2 = this.shadow.querySelector<ChartWidgetHost>('chart-widget[data-id="compare-2"]');
+      if (comp1 && comp2) {
+        comp1.data = this.summary!.chartData;
+        comp1.chartType = 'line';
+        comp1.format = 'currency';
+        comp1.isLoading = false;
+
+        comp2.data = this.summary!.chartData.map(p => ({ label: p.label, value: p.value * 0.8 }));
+        comp2.chartType = 'line';
+        comp2.format = 'currency';
+        comp2.isLoading = false;
+      }
     }
-    const picker = this.shadow.querySelector<KpiMetricPickerHost>('kpi-metric-picker');
-    if (picker) {
-      picker.selectedMetrics = this.selectedMetrics;
-      picker.deltas = this.summary.deltas;
-    }
+
     const period = this.shadow.querySelector<PeriodSelectorHost>('period-selector');
     if (period) {
       period.selectedPeriod = '7d';
@@ -510,20 +669,57 @@ class DashboardPageElement extends BaseComponent {
 
   private handleMetricsChanged = (event: Event): void => {
     const detail = (event as CustomEvent<string[]>).detail;
-    this.selectedMetrics = detail;
-    void this.loadSummary();
+    const target = event.target as HTMLElement;
+    const widgetId = target.getAttribute('data-id');
+    if (widgetId) {
+      const widget = this.widgets.find(w => w.id === widgetId);
+      if (widget) {
+        widget.metrics = detail;
+        void this.loadSummary();
+      }
+    }
   };
 
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
+
+    if (target.closest('[data-action="add-widget"]')) {
+      this.widgets.push({
+        id: `widget-${Date.now()}`,
+        type: 'bar',
+        metrics: ['Impressions', 'Clicks']
+      });
+      this.rerender();
+      this.syncChildComponents();
+      return;
+    }
+
+    if (target.closest('[data-action="toggle-compare"]')) {
+      this.isCompareModeOpen = !this.isCompareModeOpen;
+      this.rerender();
+      this.syncChildComponents();
+      return;
+    }
+
+    if (target.closest('[data-action="close-compare"]')) {
+      this.isCompareModeOpen = false;
+      this.rerender();
+      this.syncChildComponents();
+      return;
+    }
+
     const chartTypeBtn = target.closest('[data-chart-type]');
     if (chartTypeBtn) {
       const type = chartTypeBtn.getAttribute('data-chart-type') as 'bar' | 'line' | 'area';
-      if (type) {
-        this.chartType = type;
-        const chart = this.shadow.querySelector<ChartWidgetHost>('chart-widget:not(.breakdown-chart)');
-        if (chart) chart.chartType = type;
-        this.rerender();
+      const widgetId = chartTypeBtn.closest('.chart-section')?.getAttribute('data-widget-id');
+      if (type && widgetId) {
+        const widget = this.widgets.find(w => w.id === widgetId);
+        if (widget) {
+          widget.type = type;
+          const chart = this.shadow.querySelector<ChartWidgetHost>(`chart-widget[data-id="${widgetId}"]`);
+          if (chart) chart.chartType = type;
+          this.rerender();
+        }
       }
     }
     
@@ -543,19 +739,28 @@ class DashboardPageElement extends BaseComponent {
     }
   };
 
-  private renderFixedKpiCards(): string {
+  private renderKpiCards(): string {
     if (!this.summary) return '';
-    const fixedMetrics = ['Impressions', 'Clicks', 'Spend', 'Installs'];
-    return fixedMetrics
+    const metrics = ['Impressions', 'Clicks', 'Spend', 'Installs', 'Revenue', 'CTR', 'CPM', 'CPA', 'ROAS'];
+    return metrics
       .map((m) => {
         const value = this.summary!.kpiValues[m] ?? 0;
         const delta = this.summary!.deltas[m];
         let deltaHtml = '';
         if (delta) {
           const arrow = delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '–';
-          deltaHtml = `<p class="kpi-delta ${delta.direction}">${arrow} ${Math.abs(delta.value)}%</p>`;
+          deltaHtml = `<span class="kpi-delta ${delta.direction}">${arrow} ${Math.abs(delta.value)}%</span>`;
         }
-        return `<div class="kpi-card"><p class="kpi-label">${m}</p><div class="kpi-value-row"><p class="kpi-value">${value.toLocaleString()}</p>${deltaHtml}</div></div>`;
+        let formatValue = value.toLocaleString();
+        if (m === 'Spend' || m === 'Revenue' || m === 'CPM' || m === 'CPA') {
+          formatValue = `$${value.toLocaleString()}`;
+        } else if (m === 'CTR') {
+          formatValue = `${value}%`;
+        } else if (m === 'ROAS') {
+          formatValue = `${value}x`;
+        }
+        
+        return `<div class="kpi-card"><p class="kpi-label">${m}</p><div class="kpi-value-row"><span class="kpi-value">${formatValue}</span>${deltaHtml}</div></div>`;
       })
       .join('');
   }
@@ -618,28 +823,71 @@ class DashboardPageElement extends BaseComponent {
         <div class="dashboard-header">
           <h1 class="dashboard-title">Dashboard</h1>
           <div class="dashboard-controls">
+            <button class="btn-outline" data-action="toggle-compare" type="button">Compare ▾</button>
             <period-selector></period-selector>
+            <button class="btn-primary" data-action="add-widget" type="button">+ Add Widget</button>
           </div>
         </div>
         
-        <div class="kpi-grid">${SafeHtmlString.trusted(this.renderFixedKpiCards())}</div>
-        <div class="insight-line">${this.summary.insight}</div>
-        
-        <div class="picker-container">
-          <kpi-metric-picker></kpi-metric-picker>
-        </div>
-        
-        <div class="chart-section">
-          <div class="chart-header">
-            <p class="chart-title">Performance Overview</p>
-            <div class="chart-type-toggle">
-              <button class="chart-type-btn ${this.chartType === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
-              <button class="chart-type-btn ${this.chartType === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
-              <button class="chart-type-btn ${this.chartType === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+        ${this.isCompareModeOpen ? SafeHtmlString.trusted(`
+        <div class="compare-mode-section">
+          <div class="compare-mode-header">
+            <h2 class="compare-mode-title">Advanced Comparison Analysis</h2>
+            <button class="compare-mode-close" data-action="close-compare" type="button">✖</button>
+          </div>
+          <div class="compare-charts-row">
+            <div class="compare-chart-col">
+              <div class="compare-config-bar">
+                <h4 class="compare-config-title">Segment A</h4>
+                <period-selector></period-selector>
+                <select class="filter-select"><option>Campaign: All</option><option>Campaign 1</option></select>
+                <select class="filter-select"><option>OS: All</option><option>iOS</option><option>Android</option></select>
+              </div>
+              <chart-widget data-id="compare-1"></chart-widget>
+            </div>
+            <div class="compare-chart-col">
+              <div class="compare-config-bar">
+                <h4 class="compare-config-title">Segment B</h4>
+                <period-selector></period-selector>
+                <select class="filter-select"><option>Campaign: All</option><option>Campaign 1</option></select>
+                <select class="filter-select"><option>OS: All</option><option>iOS</option><option>Android</option></select>
+              </div>
+              <chart-widget data-id="compare-2"></chart-widget>
             </div>
           </div>
-          <chart-widget></chart-widget>
         </div>
+        `) : ''}
+
+        <div class="global-filters">
+          <select class="filter-select"><option>Campaign: All</option><option>Campaign 1</option></select>
+          <select class="filter-select"><option>Creative: All</option><option>Creative A</option></select>
+          <select class="filter-select"><option>App Bundle: All</option></select>
+          <select class="filter-select"><option>Publisher: All</option></select>
+          <select class="filter-select"><option>Placement ID: All</option></select>
+          <select class="filter-select"><option>Exchange: All</option></select>
+          <select class="filter-select"><option>Ad Format: All</option></select>
+          <select class="filter-select"><option>OS: All</option><option>iOS</option><option>Android</option></select>
+        </div>
+
+        <div class="kpi-scroll-container">${SafeHtmlString.trusted(this.renderKpiCards())}</div>
+        <div class="insight-line">${this.summary.insight}</div>
+        
+        ${SafeHtmlString.trusted(this.widgets.map(w => `
+        <div class="chart-section" data-widget-id="${w.id}">
+          <div class="chart-header">
+            <p class="chart-title">Performance Overview</p>
+            <div class="chart-metric-selector">
+              <kpi-metric-picker data-id="${w.id}"></kpi-metric-picker>
+            </div>
+            <div class="chart-type-toggle">
+              <button class="chart-type-btn ${w.type === 'bar' ? 'active' : ''}" data-chart-type="bar" type="button">Bar</button>
+              <button class="chart-type-btn ${w.type === 'line' ? 'active' : ''}" data-chart-type="line" type="button">Line</button>
+              <button class="chart-type-btn ${w.type === 'area' ? 'active' : ''}" data-chart-type="area" type="button">Area</button>
+            </div>
+          </div>
+          <chart-widget data-id="${w.id}"></chart-widget>
+        </div>
+        `).join(''))}
         
         ${SafeHtmlString.trusted(this.renderShortcuts())}
         ${SafeHtmlString.trusted(this.renderBreakdown())}

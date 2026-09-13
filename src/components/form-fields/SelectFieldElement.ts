@@ -58,6 +58,27 @@ class SelectFieldElement extends BaseComponent {
   protected onMount(): void { this.shadow.addEventListener('change', this.handleChange); }
   protected onUnmount(): void { this.shadow.removeEventListener('change', this.handleChange); }
 
+  static get observedAttributes() {
+    return ['label', 'value', 'options'];
+  }
+
+  attributeChangedCallback(name: string, _oldVal: string, newVal: string): void {
+    if (name === 'label') {
+      this._label = newVal;
+      this.rerender();
+    } else if (name === 'value') {
+      this._value = newVal;
+      this.rerender();
+    } else if (name === 'options') {
+      try {
+        this._options = JSON.parse(newVal);
+      } catch (e) {
+        console.error('Invalid options JSON', newVal);
+      }
+      this.rerender();
+    }
+  }
+
   private handleChange = (event: Event): void => {
     const target = event.target as HTMLElement;
     if (target.getAttribute('data-field') === 'select') {

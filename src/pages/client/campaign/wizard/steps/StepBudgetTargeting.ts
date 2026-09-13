@@ -37,7 +37,7 @@ const STYLES = `
   .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); }
   
   .row { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-2); }
-  .row-label { width: 220px; font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-primary); text-transform: uppercase; }
+  .row-label { width: 220px; font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-primary); text-transform: uppercase; flex-shrink: 0; }
   
   .field-input, .field-select {
     flex: 1;
@@ -47,15 +47,24 @@ const STYLES = `
     font-size: var(--font-size-sm);
     font-family: var(--font-body);
     background: var(--color-bg);
+    min-width: 0;
   }
   
   .radio-group { display: flex; gap: var(--space-4); align-items: center; flex: 1; }
   .radio-label { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-sm); text-transform: uppercase; cursor: pointer; }
   .radio-label input[type="radio"] { accent-color: var(--color-primary); }
   
-  .interval-group { display: flex; align-items: center; gap: var(--space-2); flex: 1; }
-  .interval-group input[type="number"] { width: 100px; }
-  .interval-group span { font-size: var(--font-size-sm); font-weight: 600; text-transform: uppercase; }
+  .interval-group { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; }
+  .interval-group input[type="number"] { width: 100px; flex-shrink: 0; }
+  .interval-group span { font-size: var(--font-size-sm); font-weight: 600; text-transform: uppercase; flex-shrink: 0; }
+  
+  /* Toggle Switch */
+  .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; margin: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 20px; }
+  .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; }
+  input:checked + .toggle-slider { background-color: var(--color-primary); }
+  input:checked + .toggle-slider:before { transform: translateX(16px); }
 `;
 
 class StepBudgetTargeting extends BaseComponent implements StepComponent {
@@ -137,7 +146,7 @@ class StepBudgetTargeting extends BaseComponent implements StepComponent {
   }
 
   private isValid(data: CampaignFormData): boolean {
-    return data.platforms.length > 0 && data.budget > 0 && data.bid > 0;
+    return data.platforms.length > 0 && data.budget > 0 && data.targetBids > 0;
   }
 
   protected renderTemplate(): string {
@@ -207,12 +216,26 @@ class StepBudgetTargeting extends BaseComponent implements StepComponent {
           </div>
         </div>
 
-        <div class="row"><div class="row-label">Budget Pacing</div><input type="text" class="field-input" data-field="budgetPacingText"></div>
-        <div class="row"><div class="row-label">Bid Shading</div><input type="text" class="field-input" data-field="bidShadingText"></div>
-        <div class="row"><div class="row-label">Impression Pacing</div><input type="text" class="field-input" data-field="impressionPacingText"></div>
-        <div class="row"><div class="row-label">Auto Exclusion</div><input type="text" class="field-input" data-field="autoExclusionText"></div>
-        <div class="row"><div class="row-label">App Diversity</div><input type="text" class="field-input" data-field="appDiversityText"></div>
-        
+        <div class="row">
+          <div class="row-label">Budget Pacing</div>
+          <label class="toggle-switch"><input type="checkbox" data-field="budgetPacing" ${d.budgetPacing ? 'checked' : ''}><span class="toggle-slider"></span></label>
+        </div>
+        <div class="row">
+          <div class="row-label">Bid Shading</div>
+          <label class="toggle-switch"><input type="checkbox" data-field="bidShading" ${d.bidShading ? 'checked' : ''}><span class="toggle-slider"></span></label>
+        </div>
+        <div class="row">
+          <div class="row-label">Impression Pacing</div>
+          <label class="toggle-switch"><input type="checkbox" data-field="impressionPacing" ${d.impressionPacing ? 'checked' : ''}><span class="toggle-slider"></span></label>
+        </div>
+        <div class="row">
+          <div class="row-label">Auto Exclusion</div>
+          <label class="toggle-switch"><input type="checkbox" data-field="autoExclusion" ${d.autoExclusion ? 'checked' : ''}><span class="toggle-slider"></span></label>
+        </div>
+        <div class="row">
+          <div class="row-label">App Diversity</div>
+          <label class="toggle-switch"><input type="checkbox" data-field="appDiversity" ${d.appDiversity ? 'checked' : ''}><span class="toggle-slider"></span></label>
+        </div>
         <div class="row">
           <div class="row-label">Creative Optimization</div>
           <div style="flex:1; display:flex; align-items:center; gap: 8px;">

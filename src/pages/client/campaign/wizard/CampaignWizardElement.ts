@@ -40,50 +40,38 @@ const STEP_TAGS = [
 ] as const;
 
 const STYLES = `
-  :host { display: block; height: 100%; font-family: var(--font-body); }
-  .wizard-container { display: flex; flex-direction: column; height: 100%; max-width: 1200px; margin: 0 auto; padding: var(--space-4); }
-  .wizard-header { margin-bottom: var(--space-6); }
-  .wizard-title { font-size: var(--font-size-2xl); font-weight: bold; margin: 0 0 var(--space-4); color: var(--color-text-primary); }
-  .progress-bar { display: flex; gap: 4px; margin-bottom: var(--space-2); }
-  .progress-step { height: 4px; flex: 1; background: var(--color-border); border-radius: var(--radius-full); }
-  .progress-step.completed { background: var(--color-primary); }
-  .progress-step.active { background: var(--color-primary); opacity: 0.7; }
-  .step-labels { display: flex; justify-content: space-between; }
-  .step-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; }
-  .step-label.active { color: var(--color-primary); font-weight: bold; }
-  .step-label.completed { color: var(--color-text-primary); }
-  
-  .wizard-body { display: flex; gap: var(--space-8); flex: 1; min-height: 500px; }
-  .step-panel { flex: 3; }
-  .preview-panel { flex: 1; min-width: 280px; }
-  
-  .preview-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    position: sticky;
-    top: var(--space-4);
-  }
-  .preview-title { font-weight: bold; margin: 0 0 var(--space-4); font-size: var(--font-size-sm); text-transform: uppercase; }
-  .preview-row { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); font-size: var(--font-size-sm); }
-  .preview-pending { color: var(--color-text-muted); }
-  .preview-check { color: var(--color-text-primary); }
-  .preview-check-icon { color: var(--color-success); font-weight: bold; }
-  .preview-pending-icon { color: var(--color-border); }
-  
-  .wizard-footer { display: flex; justify-content: flex-end; gap: var(--space-4); margin-top: var(--space-8); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
-  .nav-btn {
-    padding: var(--space-2) var(--space-6);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-  }
-  .nav-btn.primary { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-  .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  :host { display: block; min-height: 100%; font-family: var(--font-body); }
+  .wizard-container { display: flex; flex-direction: column; min-height: 100%; max-width: 1200px; margin: 0 auto; padding: var(--space-4) 0; }
+
+  /* Header */
+  .wizard-header { margin-bottom: 32px; }
+  .wizard-title { font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 24px 0; }
+
+  /* Stepper */
+  .stepper { display: flex; align-items: flex-start; gap: 0; margin-bottom: 8px; }
+  .stepper-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+  .stepper-item:not(:last-child)::after { content: ''; position: absolute; top: 16px; left: 50%; width: 100%; height: 2px; background: #e2e8f0; z-index: 0; }
+  .stepper-item.completed:not(:last-child)::after { background: #3b66f5; }
+  .stepper-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #e2e8f0; background: white; color: #94a3b8; position: relative; z-index: 1; }
+  .stepper-item.active .stepper-circle { border-color: #3b66f5; background: #3b66f5; color: white; box-shadow: 0 0 0 4px rgba(59,102,245,0.15); }
+  .stepper-item.completed .stepper-circle { border-color: #3b66f5; background: #3b66f5; color: white; }
+  .stepper-label { font-size: 11px; font-weight: 500; color: #94a3b8; margin-top: 8px; text-align: center; white-space: nowrap; }
+  .stepper-item.active .stepper-label { color: #3b66f5; font-weight: 700; }
+  .stepper-item.completed .stepper-label { color: #374151; }
+
+  /* Body */
+  .wizard-body { display: flex; gap: 24px; flex: 1; min-height: 500px; align-items: flex-start; justify-content: center; }
+  .step-panel { flex: 1; max-width: 900px; background: white; border: 1px solid #eef0f4; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
+  /* Footer */
+  .wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #eef0f4; }
+  .footer-left { font-size: 12px; color: #94a3b8; }
+  .footer-btns { display: flex; gap: 12px; }
+  .nav-btn { padding: 10px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #374151; transition: all 0.15s; }
+  .nav-btn:hover:not(:disabled) { background: #f8fafc; }
+  .nav-btn.primary { background: #3b66f5; color: white; border-color: #3b66f5; }
+  .nav-btn.primary:hover:not(:disabled) { background: #2d55e0; }
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 `;
 
 class CampaignWizardElement extends BaseComponent {
@@ -178,18 +166,6 @@ class CampaignWizardElement extends BaseComponent {
   private handleStepData = (event: Event): void => {
     const detail = (event as CustomEvent<{ data: Partial<CampaignFormData> }>).detail;
     this.campaignData = { ...this.campaignData, ...detail.data };
-    // No need to syncStepComponent, the child component already has the latest data
-    // and recreating it will cause input focus to be lost.
-    
-    // We do need to update the preview panel if we want real-time checks, 
-    // so we can update just the preview panel here.
-    const previewContainer = this.shadow.querySelector('.preview-card');
-    if (previewContainer) {
-      previewContainer.innerHTML = `
-        <p class="preview-title">Progress</p>
-        ${this.renderPreview()}
-      `;
-    }
   };
 
   private handleLaunch = async (): Promise<void> => {
@@ -257,70 +233,54 @@ class CampaignWizardElement extends BaseComponent {
     }
   }
 
-  private renderProgressBar(): string {
-    return WIZARD_STEPS.map((_, i) => {
+  private renderStepper(): string {
+    return `<div class="stepper">${WIZARD_STEPS.map((step, i) => {
       const cls = i === this.currentStep ? 'active' : i < this.currentStep ? 'completed' : '';
-      return `<div class="progress-step ${cls}"></div>`;
-    }).join('');
-  }
-
-  private renderStepLabels(): string {
-    return WIZARD_STEPS.map((step, i) => {
-      const cls = i === this.currentStep ? 'active' : i < this.currentStep ? 'completed' : '';
-      return `<div class="step-label ${cls}">${step.label}</div>`;
-    }).join('');
-  }
-
-  private renderPreview(): string {
-    const checks: { label: string; done: boolean }[] = [
-      { label: 'Campaign Info', done: this.campaignData.name !== '' },
-      { label: 'Ad Domain', done: this.campaignData.domain !== '' },
-      { label: 'Budget & Targeting', done: this.campaignData.platforms.length > 0 },
-      { label: 'Targeting', done: this.campaignData.deviceOs.length > 0 },
-    ];
-    return checks.map((c) => {
-      const icon = c.done ? '<span class="preview-check-icon">✓</span>' : '<span class="preview-pending-icon">○</span>';
-      const cls = c.done ? 'preview-check' : 'preview-pending';
-      return `<div class="preview-row ${cls}">${icon} <span>${c.label}</span></div>`;
-    }).join('');
+      const icon = i < this.currentStep ? '✓' : String(i + 1);
+      return `
+        <div class="stepper-item ${cls}">
+          <div class="stepper-circle">${icon}</div>
+          <div class="stepper-label">${step.label}</div>
+        </div>
+      `;
+    }).join('')}</div>`;
   }
 
   protected renderTemplate(): string {
     const isLastStep = this.currentStep === STEP_TAGS.length - 1;
     const canAdvance = this.stepValidationState[this.currentStep] ?? false;
+    const completedCount = this.stepValidationState.filter(Boolean).length;
+    const totalSteps = WIZARD_STEPS.length;
+    const progressPct = Math.round((completedCount / (totalSteps - 1)) * 100);
     return html`
       <div class="wizard-container">
         <div class="wizard-header">
           <h1 class="wizard-title">Create Campaign</h1>
-          <div class="progress-bar">${SafeHtmlString.trusted(this.renderProgressBar())}</div>
-          <div class="step-labels">${SafeHtmlString.trusted(this.renderStepLabels())}</div>
+          ${SafeHtmlString.trusted(this.renderStepper())}
         </div>
         <div class="wizard-body">
           <div class="step-panel">
             <div id="step-container"></div>
           </div>
-          <div class="preview-panel">
-            <div class="preview-card">
-              <p class="preview-title">Progress</p>
-              ${SafeHtmlString.trusted(this.renderPreview())}
-            </div>
-          </div>
         </div>
         <div class="wizard-footer">
-          <button class="nav-btn" data-action="prev" type="button" ${this.currentStep === 0 ? 'disabled' : ''}>Back</button>
-          ${!isLastStep
-            ? SafeHtmlString.trusted(`<button class="nav-btn primary" data-action="next" type="button" ${canAdvance ? '' : 'disabled'}>Next</button>`)
-            : SafeHtmlString.trusted('<button class="nav-btn primary" data-action="next" type="button" disabled>Launch</button>')
-          }
+          <span class="footer-left">Step ${this.currentStep + 1} of ${totalSteps}</span>
+          <div class="footer-btns">
+            <button class="nav-btn" data-action="prev" type="button" ${this.currentStep === 0 ? 'disabled' : ''}>← Back</button>
+            ${!isLastStep
+              ? SafeHtmlString.trusted(`<button class="nav-btn primary" data-action="next" type="button" ${canAdvance ? '' : 'disabled'}>Continue →</button>`)
+              : SafeHtmlString.trusted('<button class="nav-btn primary" data-action="next" type="button" disabled>🚀 Launch Campaign</button>')
+            }
+          </div>
         </div>
         
         <vis-modal id="unsaved-modal">
           <div style="text-align: center;">
-            <h2 style="margin-top: 0;">Discard Unsaved Changes?</h2>
-            <p style="color: var(--color-text-muted); margin-bottom: var(--space-4);">You have unsaved changes in this campaign. Are you sure you want to leave?</p>
-            <div style="display: flex; gap: var(--space-3); justify-content: center;">
+            <h2 style="margin-top: 0; color:#111827;">Discard Unsaved Changes?</h2>
+            <p style="color: #6b7280; margin-bottom: 20px;">You have unsaved changes in this campaign. Are you sure you want to leave?</p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
               <button class="nav-btn" data-action="cancel-leave" type="button">Stay</button>
-              <button class="nav-btn" data-action="confirm-leave" type="button" style="background: var(--color-danger); color: white; border-color: var(--color-danger);">Discard & Leave</button>
+              <button class="nav-btn" data-action="confirm-leave" type="button" style="background:#dc2626;color:white;border-color:#dc2626;">Discard &amp; Leave</button>
             </div>
           </div>
         </vis-modal>

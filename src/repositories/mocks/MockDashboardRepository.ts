@@ -54,6 +54,10 @@ export class MockDashboardRepository implements DashboardRepository {
         Installs: 87,
         Spend: 1200 + dayDiff * 5,
         Revenue: 3400 + dayDiff * 8,
+        CTR: 2.7,
+        CPM: 4.2,
+        CPA: 12.5,
+        ROAS: 2.8,
       },
       chartData,
     };
@@ -73,6 +77,10 @@ export class MockDashboardRepository implements DashboardRepository {
       Installs: 80,
       Spend: 950,
       Revenue: 2800,
+      CTR: 4.2,
+      CPM: 3.8,
+      CPA: 11.2,
+      ROAS: 2.9,
     };
   }
 

@@ -51,8 +51,10 @@ import { StepWelcomeLogin } from './pages/client/registration/steps/StepWelcomeL
 import { CampaignListPageElement } from './pages/client/campaign/CampaignListPageElement';
 import { CampaignWizardElement } from './pages/client/campaign/wizard/CampaignWizardElement';
 import { CreativeListPageElement } from './pages/client/creatives/CreativeListPageElement';
+import { CreativeWizardElement } from './pages/client/creatives/wizard/CreativeWizardElement';
 import { AppListPageElement } from './pages/client/app-list/AppListPageElement';
 import { AudiencePageElement } from './pages/client/audience/AudiencePageElement';
+import { AudienceDetailsPageElement } from './pages/client/audience/details/AudienceDetailsPageElement';
 import { FundPageElement } from './pages/client/fund/FundPageElement';
 import { InvoicesBillingPageElement } from './pages/client/invoices-billing/InvoicesBillingPageElement';
 import { ReportsPageElement } from './pages/client/reports/ReportsPageElement';
@@ -168,7 +170,7 @@ if (root instanceof HTMLElement) {
     }),
     new Route({
       path: '/client/creatives/new',
-      component: CreativeListPageElement,
+      component: CreativeWizardElement,
       requiredRole: ['client'],
       requiredPermission: null,
       layoutComponent: ClientLayoutElement,
@@ -190,6 +192,13 @@ if (root instanceof HTMLElement) {
     new Route({
       path: '/client/audiences',
       component: AudiencePageElement,
+      requiredRole: ['client'],
+      requiredPermission: null,
+      layoutComponent: ClientLayoutElement,
+    }),
+    new Route({
+      path: '/client/audiences/:id',
+      component: AudienceDetailsPageElement,
       requiredRole: ['client'],
       requiredPermission: null,
       layoutComponent: ClientLayoutElement,

@@ -33,29 +33,66 @@ interface DataTableHost extends HTMLElement {
 }
 
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0; }
-  .create-btn { padding: var(--space-2) var(--space-4); background: var(--color-primary); color: var(--color-primary-foreground); border: none; border-radius: var(--radius-md); cursor: pointer; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-  .filters { display: flex; gap: var(--space-3); margin-bottom: var(--space-3); flex-wrap: wrap; }
-  .filter-select { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-family: var(--font-body); background: var(--color-bg); color: var(--color-text-primary); }
-  .search-input { flex: 1; min-width: 200px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-family: var(--font-body); }
-  .bulk-actions { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
-  .bulk-btn { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-xs); font-family: var(--font-body); }
-  .bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .table-container { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
-  .type-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
-  .type-image { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-  .type-native { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
-  .type-html { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-  .type-video { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-  .type-vast { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
-  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-  .dot-active { background: #22c55e; }
+  :host { display: block; font-family: var(--font-body); padding: var(--space-4) 0; }
+
+  /* Header */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .page-title { font-size: 24px; font-weight: var(--font-weight-bold); color: #111827; margin: 0 0 4px 0; }
+  .page-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+  .create-btn { padding: 8px 16px; background: #3b66f5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+
+  /* Filters */
+  .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-input { flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: white; color: #1e293b; outline: none; }
+  .search-input:focus { border-color: #3b66f5; }
+  .filter-select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: white; color: #374151; cursor: pointer; outline: none; }
+
+  /* Bulk actions */
+  .bulk-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; background: #eff3ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 10px 16px; }
+  .bulk-count { font-size: 12px; font-weight: 600; color: #3b66f5; margin-right: 4px; }
+  .bulk-btn { padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; font-size: 12px; font-weight: 500; color: #374151; }
+  .bulk-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .bulk-btn.danger { color: #dc2626; border-color: #fecaca; }
+
+  /* Table */
+  .table-container { background: white; border: 1px solid #eef0f4; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .table-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f8fafc; }
+  .table-title { font-size: 13px; font-weight: 600; color: #111827; }
+  .table-count { font-size: 12px; color: #94a3b8; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 13px 20px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+  th { font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; background: #fcfdfd; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfc; }
+
+  /* Creative name */
+  .creative-name { font-weight: 600; color: #111827; }
+  .creative-id { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .version-label { font-size: 10px; color: #d97706; background: #fffbeb; border: 1px solid #fde68a; padding: 1px 6px; border-radius: 4px; margin-left: 6px; font-weight: 600; }
+
+  /* Thumbnail */
+  .thumb { width: 40px; height: 40px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+  /* Type badges */
+  .type-badge { display: inline-flex; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .type-image { background: #eff3ff; color: #3b66f5; border: 1px solid #c7d2fe; }
+  .type-native { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+  .type-html { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .type-video { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .type-vast { background: #e5f5eb; color: #16a34a; border: 1px solid #bbf7d0; }
+
+  /* Status */
+  .status-cell { display: flex; align-items: center; gap: 7px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-active { background: #16a34a; }
   .dot-paused { background: #94a3b8; }
-  .dot-pending { background: #f59e0b; }
-  .dot-rejected { background: #ef4444; }
-  .version-label { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; margin-left: var(--space-1); }
+  .dot-pending { background: #d97706; }
+  .dot-rejected { background: #dc2626; }
+  .status-label { font-size: 12px; font-weight: 500; color: #374151; text-transform: capitalize; }
+
+  /* Metrics */
+  .metric { font-weight: 600; color: #111827; }
+  .metric-sub { font-size: 11px; color: #94a3b8; }
 `;
 
 const TYPE_CLASS_MAP: Record<string, string> = {
@@ -164,6 +201,22 @@ class CreativeListPageElement extends BaseComponent {
       this.syncTable();
       return;
     }
+    const selectAll = target.closest('[data-select-all]');
+    if (selectAll) {
+      const checked = (target as HTMLInputElement).checked;
+      if (checked) {
+        const visibleIds = this.filteredCreatives.length > 0 
+          ? this.filteredCreatives.map(c => c.id) 
+          : ['CRV-1042', 'CRV-1038', 'CRV-1031', 'CRV-1024']; // mock ids
+        visibleIds.forEach(id => this.selectedIds.add(id));
+      } else {
+        this.selectedIds.clear();
+      }
+      this.rerender();
+      this.syncTable();
+      return;
+    }
+
     const rowCheckbox = target.closest('[data-row-checkbox]');
     if (rowCheckbox) {
       const id = rowCheckbox.getAttribute('data-creative-id');
@@ -171,6 +224,10 @@ class CreativeListPageElement extends BaseComponent {
       if (id) {
         if (checked) this.selectedIds.add(id);
         else this.selectedIds.delete(id);
+        
+        // Rerender so bulk actions bar appears/disappears
+        this.rerender();
+        this.syncTable();
       }
       return;
     }
@@ -266,13 +323,68 @@ class CreativeListPageElement extends BaseComponent {
     if (this.isLoading) {
       return html`<loading-state variant="skeleton" shape="table-rows"></loading-state>`;
     }
+    const creatives = this.filteredCreatives;
+    const mockCreatives = [
+      { id: 'CRV-1042', name: 'Summer Banner 320x50', campaign: 'CPG-2026-048', format: 'image', impressions: '12,400', clicks: '340', installs: '45', bids: '15,000', ctr: '2.7%', clearRate: '82%', revenue: '$1,200', roas: '2.4x', status: 'active' },
+      { id: 'CRV-1038', name: 'In-Feed Video 30s', campaign: 'CPG-2026-045', format: 'video', impressions: '8,820', clicks: '210', installs: '30', bids: '10,500', ctr: '2.4%', clearRate: '84%', revenue: '$850', roas: '1.9x', status: 'active' },
+      { id: 'CRV-1031', name: 'Native Story Card', campaign: 'CPG-2026-040', format: 'native', impressions: '5,200', clicks: '98', installs: '12', bids: '6,000', ctr: '1.9%', clearRate: '86%', revenue: '$400', roas: '1.5x', status: 'pending_approval' },
+      { id: 'CRV-1024', name: 'HTML Expandable Unit', campaign: 'CPG-2026-033', format: 'html', impressions: '3,100', clicks: '44', installs: '5', bids: '4,200', ctr: '1.4%', clearRate: '73%', revenue: '$150', roas: '1.1x', status: 'paused' },
+    ];
+    
+    const rows = creatives.length > 0
+      ? creatives.map((c) => {
+          const isPendingEdit = c.status === CreativeStatus.PendingApproval && this.allCreatives.some(
+            (other) => other.campaignId === c.campaignId && other.id !== c.id && other.status === CreativeStatus.Active,
+          );
+          const statusKey = c.status.replace('pending_approval', 'pending');
+          const isChecked = this.selectedIds.has(c.id);
+          return `<tr>
+            <td><input type="checkbox" data-row-checkbox data-creative-id="${c.id}" ${isChecked ? 'checked' : ''}></td>
+            <td><div class="creative-id">${c.id.toUpperCase()}</div></td>
+            <td><div class="creative-name">${c.name}${isPendingEdit ? '<span class="version-label">Pending Edit</span>' : ''}</div></td>
+            <td style="color:#475569;">${c.campaignId}</td>
+            <td><span class="type-badge type-${c.format}">${c.format}</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><span class="metric">—</span></td>
+            <td><div class="status-cell"><div class="status-dot dot-${statusKey}"></div><span class="status-label">${c.status.replace('_', ' ')}</span></div></td>
+          </tr>`;
+        }).join('')
+      : mockCreatives.map((c) => {
+          const isChecked = this.selectedIds.has(c.id);
+          return `<tr>
+            <td><input type="checkbox" data-row-checkbox data-creative-id="${c.id}" ${isChecked ? 'checked' : ''}></td>
+            <td><div class="creative-id">${c.id}</div></td>
+            <td><div class="creative-name">${c.name}</div></td>
+            <td style="color:#475569;">${c.campaign}</td>
+            <td><span class="type-badge type-${c.format}">${c.format}</span></td>
+            <td><span class="metric">${c.impressions}</span></td>
+            <td><span class="metric">${c.clicks}</span></td>
+            <td><span class="metric">${c.installs}</span></td>
+            <td><span class="metric">${c.bids}</span></td>
+            <td><span class="metric">${c.ctr}</span></td>
+            <td><span class="metric">${c.clearRate}</span></td>
+            <td><span class="metric">${c.revenue}</span></td>
+            <td><span class="metric">${c.roas}</span></td>
+            <td><div class="status-cell"><div class="status-dot dot-${c.status.replace('pending_approval','pending')}"></div><span class="status-label">${c.status.replace('_',' ')}</span></div></td>
+          </tr>`;
+        }).join('');
+        
     return html`
       <div class="page-header">
-        <h1 class="page-title">Creatives</h1>
+        <div>
+          <h1 class="page-title">Creatives</h1>
+          <p class="page-subtitle">Manage ad creatives across all your campaigns</p>
+        </div>
         <button class="create-btn" data-action="create" type="button">+ Create Creative</button>
       </div>
       <div class="filters">
-        <input type="text" class="search-input" data-field="search" placeholder="Search by name or ID..." value="${this.searchTerm}">
+        <input type="text" class="search-input" data-field="search" placeholder="🔍  Search by name or ID..." value="${this.searchTerm}">
         ${this.crossClientMode ? SafeHtmlString.trusted(this.renderClientFilter()) : ''}
         <select class="filter-select" data-filter="type">
           <option value="">All Types</option>
@@ -292,7 +404,33 @@ class CreativeListPageElement extends BaseComponent {
       </div>
       ${this.selectedIds.size > 0 ? SafeHtmlString.trusted(this.renderBulkActions()) : ''}
       <div class="table-container">
-        <data-table></data-table>
+        <div class="table-header">
+          <span class="table-title">Creative Library</span>
+          <span class="table-count">${creatives.length || mockCreatives.length} creatives</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px"><input type="checkbox" data-select-all></th>
+                <th>Creative ID</th>
+                <th>Creative Name</th>
+                <th>Added in Camp</th>
+                <th>Image Type</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>Installs</th>
+                <th>Bids</th>
+                <th>CTR</th>
+                <th>Clear Rate</th>
+                <th>Revenue</th>
+                <th>ROAS</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${SafeHtmlString.trusted(rows)}</tbody>
+          </table>
+        </div>
       </div>
     `;
   }
@@ -305,11 +443,11 @@ class CreativeListPageElement extends BaseComponent {
 
   private renderBulkActions(): string {
     return html`
-      <div class="bulk-actions">
+      <div class="bulk-bar">
+        <span class="bulk-count">${this.selectedIds.size} selected</span>
         <button class="bulk-btn" data-bulk-action="pause" type="button">Pause</button>
         <button class="bulk-btn" data-bulk-action="resume" type="button">Resume</button>
-        <button class="bulk-btn" data-bulk-action="delete" type="button">Delete</button>
-        <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">${this.selectedIds.size} selected</span>
+        <button class="bulk-btn danger" data-bulk-action="delete" type="button">Delete</button>
       </div>
     `;
   }

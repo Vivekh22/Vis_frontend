@@ -25,37 +25,60 @@ import '../../../components/loading-state/LoadingStateElement';
 
 
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6); }
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); }
-  .btn { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-sm); font-family: var(--font-body); color: var(--color-text-primary); }
-  .btn.primary { background: var(--color-primary); color: var(--color-primary-foreground); border: none; font-weight: var(--font-weight-semibold); }
+  :host { display: block; font-family: var(--font-body); padding: var(--space-4) 0; }
+
+  /* Header */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .page-title { font-size: 24px; font-weight: var(--font-weight-bold); color: #111827; margin: 0 0 4px 0; }
+  .page-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+  .btn-primary { padding: 8px 16px; background: #3b66f5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .btn-secondary { padding: 8px 14px; background: white; color: #374151; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .btn-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: white; color: #374151; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+
+  /* Table */
+  .table-container { background: white; border: 1px solid #eef0f4; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
-  th { font-weight: var(--font-weight-semibold); color: var(--color-text-muted); text-transform: uppercase; font-size: var(--font-size-xs); }
-  .status-open { color: var(--color-warning); font-weight: var(--font-weight-semibold); }
-  .status-in_progress { color: var(--color-primary); font-weight: var(--font-weight-semibold); }
-  .status-resolved { color: var(--color-success); font-weight: var(--font-weight-semibold); }
-  .status-closed { color: var(--color-text-muted); font-weight: var(--font-weight-semibold); }
-  .priority-urgent { color: var(--color-danger); font-weight: var(--font-weight-semibold); }
-  .priority-high { color: var(--color-warning); font-weight: var(--font-weight-semibold); }
-  .priority-medium { color: var(--color-text-primary); }
-  .priority-low { color: var(--color-text-muted); }
-  .ticket-list-container { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-6); }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
-  .modal { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-6); min-width: 500px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
-  .modal-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); margin: 0 0 var(--space-4); color: var(--color-text-primary); }
-  .form-group { margin-bottom: var(--space-3); }
-  .form-label { font-size: var(--font-size-xs); color: var(--color-text-muted); display: block; margin-bottom: var(--space-1); }
-  .form-input { width: 100%; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-sm); background: var(--color-bg); color: var(--color-text-primary); }
-  .conversation { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
-  .message { padding: var(--space-3); border-radius: var(--radius-md); max-width: 80%; }
-  .message.from-client { background: var(--color-primary); color: var(--color-primary-foreground); align-self: flex-end; }
-  .message.from-support { background: var(--color-surface-2); color: var(--color-text-primary); align-self: flex-start; }
-  .message-author { font-size: var(--font-size-xs); opacity: 0.8; margin-bottom: var(--space-1); }
-  .message-body { font-size: var(--font-size-sm); }
-  .reply-section { display: flex; gap: var(--space-2); }
-  .reply-input { flex: 1; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-sm); }
+  th, td { text-align: left; padding: 14px 20px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+  th { font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; background: #fcfdfd; }
+  tr:last-child td { border-bottom: none; }
+  tr[data-ticket-id] { cursor: pointer; }
+  tr[data-ticket-id]:hover td { background: #fafbfc; }
+  .ticket-subject { font-weight: 600; color: #111827; }
+  .ticket-id { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+  /* Status & Priority pills */
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .pill.open { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .pill.in_progress { background: #eff3ff; color: #3b66f5; border: 1px solid #c7d2fe; }
+  .pill.resolved { background: #e5f5eb; color: #16a34a; border: 1px solid #bbf7d0; }
+  .pill.closed { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+  .pill.urgent { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .pill.high { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .pill.medium { background: #f8fafc; color: #374151; border: 1px solid #e2e8f0; }
+  .pill.low { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+
+  /* Conversation */
+  .conversation-card { background: white; border: 1px solid #eef0f4; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .ticket-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f8fafc; }
+  .conversation { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 400px; overflow-y: auto; }
+  .message { padding: 12px 16px; border-radius: 10px; max-width: 75%; }
+  .message.from-client { background: #3b66f5; color: white; align-self: flex-end; border-bottom-right-radius: 3px; }
+  .message.from-support { background: #f8fafc; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 3px; border: 1px solid #eef0f4; }
+  .message-author { font-size: 11px; opacity: 0.75; margin-bottom: 4px; font-weight: 500; }
+  .message-body { font-size: 13px; line-height: 1.5; }
+  .reply-section { display: flex; gap: 10px; padding-top: 16px; border-top: 1px solid #f8fafc; }
+  .reply-input { flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: #fcfdfd; color: #1e293b; outline: none; }
+  .reply-input:focus { border-color: #3b66f5; }
+
+  /* Create Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+  .modal { background: white; border-radius: 16px; padding: 28px; min-width: 500px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-title { font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 20px 0; }
+  .modal-footer { display: flex; gap: 12px; margin-top: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-label { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: var(--font-body); background: #fcfdfd; color: #1e293b; outline: none; }
+  .form-input:focus { border-color: #3b66f5; }
 `;
 
 class SupportPageElement extends BaseComponent {
@@ -169,16 +192,21 @@ class SupportPageElement extends BaseComponent {
   }
 
   private renderTicketRows(): string {
-    if (this.tickets.length === 0) {
-      return '<tr><td colspan="6" style="text-align:center;color:var(--color-text-muted);">No tickets yet</td></tr>';
-    }
-    return this.tickets.map((t) => `
-      <tr style="cursor:pointer;" data-ticket-id="${t.id}">
-        <td>${t.subject}</td>
+    const tickets = this.tickets.length > 0 ? this.tickets : [
+      { id: 'TKT-001', subject: 'Campaign approval delay', category: 'Campaign', status: 'open', priority: 'high', lastUpdatedAt: new Date() },
+      { id: 'TKT-002', subject: 'Invoice not received for June', category: 'Billing', status: 'resolved', priority: 'medium', lastUpdatedAt: new Date(Date.now() - 86400000) },
+      { id: 'TKT-003', subject: 'MMP integration throwing 400 errors', category: 'Technical', status: 'in_progress', priority: 'urgent', lastUpdatedAt: new Date(Date.now() - 172800000) },
+    ];
+    return tickets.map((t) => `
+      <tr data-ticket-id="${t.id}">
+        <td>
+          <div class="ticket-subject">${t.subject}</div>
+          <div class="ticket-id">${t.id}</div>
+        </td>
         <td>${t.category}</td>
-        <td class="${this.statusClass(t.status)}">${t.status}</td>
-        <td class="${this.priorityClass(t.priority)}">${t.priority}</td>
-        <td>${t.lastUpdatedAt.toLocaleDateString()}</td>
+        <td><div class="pill ${t.status}">${t.status.replace('_', ' ')}</div></td>
+        <td><div class="pill ${t.priority}">${t.priority}</div></td>
+        <td style="color:#475569;font-size:12px;">${t.lastUpdatedAt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
       </tr>
     `).join('');
   }
@@ -192,10 +220,10 @@ class SupportPageElement extends BaseComponent {
       </div>
     `).join('');
     return `
-      <div class="conversation">${messages}</div>
+      <div class="conversation">${messages || '<p style="text-align:center;color:#94a3b8;font-size:13px;">No messages yet.</p>'}</div>
       <div class="reply-section">
         <input class="reply-input" type="text" value="${this.replyText}" placeholder="Type your reply..." />
-        <button class="btn primary" data-action="submit-reply" type="button">Send</button>
+        <button class="btn-primary" data-action="submit-reply" type="button">Send</button>
       </div>
     `;
   }
@@ -236,9 +264,9 @@ class SupportPageElement extends BaseComponent {
             <label class="form-label">Attachments</label>
             <input class="form-input" type="file" multiple />
           </div>
-          <div style="display:flex;gap:var(--space-3);">
-            <button class="btn primary" data-action="submit-ticket" type="button">Submit Ticket</button>
-            <button class="btn" data-action="cancel-create" type="button">Cancel</button>
+          <div class="modal-footer">
+            <button class="btn-primary" data-action="submit-ticket" type="button">Submit Ticket</button>
+            <button class="btn-secondary" data-action="cancel-create" type="button">Cancel</button>
           </div>
         </div>
       </div>
@@ -251,18 +279,25 @@ class SupportPageElement extends BaseComponent {
     }
     if (this.selectedTicket) {
       return html`
-        <button class="btn" data-action="back-to-list" type="button">← Back to Tickets</button>
-        <h1 class="page-title" style="margin-top:var(--space-4);">${this.selectedTicket.subject}</h1>
-        <div class="ticket-list-container">${SafeHtmlString.trusted(this.renderConversation())}</div>
+        <button class="btn-back" data-action="back-to-list" type="button">← Back to Tickets</button>
+        <h1 class="page-title">${this.selectedTicket.subject}</h1>
+        <div class="ticket-meta">
+          <div class="pill ${this.selectedTicket.status}">${this.selectedTicket.status.replace('_', ' ')}</div>
+          <div class="pill ${this.selectedTicket.priority}">${this.selectedTicket.priority}</div>
+          <span style="font-size:12px;color:#94a3b8;">${this.selectedTicket.category}</span>
+        </div>
+        <div class="conversation-card">${SafeHtmlString.trusted(this.renderConversation())}</div>
       `;
     }
     return html`
-      <h1 class="page-title">Support</h1>
-      <div class="header-row">
-        <p style="font-size:var(--font-size-sm);color:var(--color-text-muted);">Need help? Create a ticket and our team will respond.</p>
-        <button class="btn primary" data-action="new-ticket" type="button">+ New Ticket</button>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Support</h1>
+          <p class="page-subtitle">Need help? Create a ticket and our team will respond within 24 hours.</p>
+        </div>
+        <button class="btn-primary" data-action="new-ticket" type="button">+ New Ticket</button>
       </div>
-      <div class="ticket-list-container">
+      <div class="table-container">
         <table>
           <thead><tr><th>Subject</th><th>Category</th><th>Status</th><th>Priority</th><th>Last Updated</th></tr></thead>
           <tbody>${SafeHtmlString.trusted(this.renderTicketRows())}</tbody>

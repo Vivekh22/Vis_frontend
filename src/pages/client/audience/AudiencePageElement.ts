@@ -1,77 +1,108 @@
 /**
  * AudiencePageElement.ts — pages/client/audience/
  *
- * Table: Audience ID, Name, No. of Users, White/Black Listed, Created On.
- * Creation drawer: Name, Comments, single-select data source —
- *   Upload CSV File (live preview + row count), Connect Through API
- *   (with Test Connection), Upload CSV Link (with Validate Link).
- *
- * Save is DISABLED until the chosen source validates successfully.
- * CSV parsing is hand-written (utils/csvParser.ts) — no external library.
+ * Production-ready Audience module main page.
+ * Displays KPI cards, filters, and a comprehensive data table of all audiences.
  */
 import { BaseComponent } from '../../../platform/component/BaseComponent';
 import { ComponentRegistry } from '../../../platform/component/ComponentRegistry';
 import { injectStyles, injectGlobalTokens } from '../../../platform/component/ShadowRenderMixin';
 import { html, SafeHtmlString } from '../../../platform/rendering/SafeHtml';
 import { audienceService } from '../../../services';
-import type { AudienceList } from '../../../core/entities/AudienceList';
+import { AudienceList, type AudienceStatus, type AudienceType } from '../../../core/entities/AudienceList';
+import { navigate } from '../../../utils/navigate';
 import { AudienceDataSource } from '../../../core/enums/AudienceDataSource';
-import { parseCsv } from '../../../utils/csvParser';
 import '../../../components/loading-state/LoadingStateElement';
-
+import './wizard/AudienceWizardElement';
 
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0; }
-  .create-btn { padding: var(--space-2) var(--space-4); background: var(--color-primary); color: var(--color-primary-foreground); border: none; border-radius: var(--radius-md); cursor: pointer; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-  .table-container { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); color: var(--color-text-primary); }
-  th { font-weight: var(--font-weight-semibold); color: var(--color-text-muted); text-transform: uppercase; font-size: var(--font-size-xs); }
-  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; justify-content: flex-end; }
-  .drawer { background: var(--color-bg); width: 520px; max-width: 90%; height: 100%; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); box-shadow: var(--shadow-lg); }
-  .drawer-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0; }
-  .close-btn { align-self: flex-end; background: none; border: none; cursor: pointer; font-size: var(--font-size-xl); color: var(--color-text-muted); }
-  .field-group { display: flex; flex-direction: column; gap: var(--space-1); }
-  .field-label { font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-  .field-input, .field-textarea, .field-select { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-family: var(--font-body); background: var(--color-bg); color: var(--color-text-primary); }
-  .field-textarea { min-height: 80px; resize: vertical; }
-  .source-tabs { display: flex; gap: var(--space-2); }
-  .source-tab { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-sm); font-family: var(--font-body); color: var(--color-text-primary); }
-  .source-tab.active { background: var(--color-primary); color: var(--color-primary-foreground); border-color: var(--color-primary); }
-  .csv-preview { font-family: var(--font-mono); font-size: var(--font-size-xs); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-2); max-height: 160px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
-  .row-count { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-1); }
-  .test-btn { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-xs); font-family: var(--font-body); }
-  .validation-msg { font-size: var(--font-size-xs); margin-top: var(--space-1); }
-  .validation-msg.ok { color: var(--color-success); }
-  .validation-msg.fail { color: var(--color-danger); }
-  .drawer-actions { display: flex; gap: var(--space-3); margin-top: var(--space-4); }
-  .save-btn { padding: var(--space-2) var(--space-4); background: var(--color-primary); color: var(--color-primary-foreground); border: none; border-radius: var(--radius-md); cursor: pointer; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cancel-btn { padding: var(--space-2) var(--space-4); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; font-size: var(--font-size-sm); font-family: var(--font-body); color: var(--color-text-primary); }
-  .type-select { padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-family: var(--font-body); background: var(--color-bg); color: var(--color-text-primary); }
-`;
+  :host { 
+    display: block; 
+    font-family: var(--font-body); 
+    padding: var(--space-6); 
+    background: #f8fafc;
+    min-height: 100vh;
+  }
 
-type SourceTab = 'csv_file' | 'api' | 'csv_link';
+  /* Header */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-6); }
+  .page-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; letter-spacing: -0.02em; }
+  .page-subtitle { font-size: 14px; color: #64748b; margin: 0; }
+  .create-btn { padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: background 0.2s; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); }
+  .create-btn:hover { background: #2563eb; }
+  
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+  .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: var(--space-5); display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+  .kpi-icon-wrapper { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .kpi-icon-wrapper.blue { background: #eff6ff; color: #3b82f6; }
+  .kpi-icon-wrapper.green { background: #f0fdf4; color: #22c55e; }
+  .kpi-icon-wrapper.indigo { background: #eef2ff; color: #6366f1; }
+  .kpi-content { display: flex; flex-direction: column; gap: 4px; }
+  .kpi-label { font-size: 13px; color: #64748b; font-weight: 500; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #0f172a; display: flex; align-items: baseline; gap: 8px; }
+  .kpi-sub { font-size: 13px; color: #94a3b8; font-weight: 400; }
+
+  /* Filters Bar */
+  .filters-bar { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .search-wrapper { flex: 1; position: relative; }
+  .search-input { width: 100%; box-sizing: border-box; padding: 10px 12px 10px 36px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: all 0.2s; }
+  .search-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+  .filter-select { padding: 10px 32px 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #475569; background: white; cursor: pointer; outline: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%2394a3b8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
+
+  /* Table Section */
+  .table-container { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+  th { font-weight: 600; color: #64748b; font-size: 12px; text-transform: capitalize; background: #f8fafc; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: #f8fafc; }
+  
+  .checkbox-cell { width: 40px; text-align: center; }
+  input[type="checkbox"] { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; accent-color: #3b82f6; }
+
+  .aud-name { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+  .aud-desc { font-size: 12px; color: #64748b; }
+  
+  .type-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .type-custom { background: #eff6ff; color: #2563eb; }
+  .type-lookalike { background: #fffbeb; color: #d97706; }
+  .type-saved { background: #f3e8ff; color: #9333ea; }
+  
+  .source-text { color: #475569; }
+  
+  .status-cell { display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-active { background: #22c55e; }
+  .dot-processing { background: #f59e0b; }
+  .dot-archived { background: #94a3b8; }
+  .dot-failed { background: #ef4444; }
+  .status-text { font-weight: 500; font-size: 13px; color: #334155; text-transform: capitalize; }
+  
+  .date-text { color: #475569; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+  .date-time { font-size: 11px; color: #94a3b8; }
+
+  .actions-btn { background: transparent; border: none; cursor: pointer; color: #64748b; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .actions-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+  /* Pagination Footer */
+  .pagination-footer { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-top: 1px solid #f1f5f9; background: white; }
+  .showing-text { font-size: 13px; color: #64748b; }
+  .pagination-controls { display: flex; gap: 4px; }
+  .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; border-radius: 6px; background: white; color: #475569; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+  .page-btn:hover { background: #f8fafc; }
+  .page-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+`;
 
 class AudiencePageElement extends BaseComponent {
   private audiences: AudienceList[] = [];
   private isLoading = true;
-  private isDrawerOpen = false;
-  private name = '';
-  private listType: 'whitelist' | 'blacklist' = 'whitelist';
-  private comments = '';
-  private activeSource: SourceTab = 'csv_file';
-  private csvData = '';
-  private apiUrl = '';
-  private apiKey = '';
-  private csvLinkUrl = '';
-  private isSourceValidated = false;
-  private csvPreview = '';
-  private csvRowCount = 0;
-  private crossClientMode = false;
-  private clientFilter = '';
+  private searchTerm = '';
+  private filterType = '';
+  private filterSource = '';
+  private filterStatus = '';
+  private isModalOpen = false;
 
   constructor() {
     super();
@@ -80,10 +111,10 @@ class AudiencePageElement extends BaseComponent {
   }
 
   protected onMount(): void {
-    this.crossClientMode = this.hasAttribute('cross-client-mode');
     this.shadow.addEventListener('click', this.handleClick);
     this.shadow.addEventListener('input', this.handleInput);
     this.shadow.addEventListener('change', this.handleChange);
+    this.shadow.addEventListener('audience-created', this.handleAudienceCreated);
     void this.loadAudiences();
   }
 
@@ -91,6 +122,7 @@ class AudiencePageElement extends BaseComponent {
     this.shadow.removeEventListener('click', this.handleClick);
     this.shadow.removeEventListener('input', this.handleInput);
     this.shadow.removeEventListener('change', this.handleChange);
+    this.shadow.removeEventListener('audience-created', this.handleAudienceCreated);
   }
 
   private async loadAudiences(): Promise<void> {
@@ -105,275 +137,266 @@ class AudiencePageElement extends BaseComponent {
     this.rerender();
   }
 
+  private get filteredAudiences(): AudienceList[] {
+    let result = [...this.audiences];
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(a => a.name.toLowerCase().includes(term) || a.description.toLowerCase().includes(term));
+    }
+    if (this.filterType) {
+      result = result.filter(a => a.audienceType === this.filterType);
+    }
+    if (this.filterSource) {
+      result = result.filter(a => a.dataSource.type === this.filterSource);
+    }
+    if (this.filterStatus) {
+      result = result.filter(a => a.status === this.filterStatus);
+    }
+    return result;
+  }
+
   private handleClick = (event: Event): void => {
     const target = event.target as HTMLElement;
     if (target.closest('[data-action="create"]')) {
-      this.isDrawerOpen = true;
-      this.resetForm();
+      this.isModalOpen = true;
       this.rerender();
       return;
     }
-    if (target.closest('[data-action="cancel"]')) {
-      this.isDrawerOpen = false;
-      this.rerender();
-      return;
-    }
-    if (target.closest('[data-action="save"]')) {
-      void this.handleSave();
-      return;
-    }
-    if (target.closest('[data-action="test-api"]')) {
-      this.validateApi();
-      this.rerender();
-      return;
-    }
-    if (target.closest('[data-action="validate-link"]')) {
-      this.validateCsvLink();
-      this.rerender();
-      return;
-    }
-    const tab = target.closest('[data-source-tab]');
-    if (tab) {
-      this.activeSource = tab.getAttribute('data-source-tab') as SourceTab;
-      this.isSourceValidated = false;
-      this.csvPreview = '';
-      this.csvRowCount = 0;
-      this.rerender();
-    }
-    if (target.classList.contains('drawer-overlay')) {
-      this.isDrawerOpen = false;
-      this.rerender();
+    
+    const row = target.closest('.audience-row');
+    if (row && !target.closest('.checkbox-cell') && !target.closest('.actions-btn')) {
+      const id = row.getAttribute('data-id');
+      if (id) {
+        navigate(`/client/audiences/${id}`);
+        return;
+      }
     }
   };
 
   private handleInput = (event: Event): void => {
     const target = event.target as HTMLElement;
-    const field = target.getAttribute('data-field');
-    if (!field) return;
-    const value = (target as HTMLInputElement | HTMLTextAreaElement).value;
-    if (field === 'name') this.name = value;
-    else if (field === 'comments') this.comments = value;
-    else if (field === 'apiUrl') { this.apiUrl = value; this.isSourceValidated = false; }
-    else if (field === 'apiKey') { this.apiKey = value; this.isSourceValidated = false; }
-    else if (field === 'csvLinkUrl') { this.csvLinkUrl = value; this.isSourceValidated = false; }
+    if (target.getAttribute('data-field') === 'search') {
+      this.searchTerm = (target as HTMLInputElement).value;
+      this.rerender();
+    }
   };
 
   private handleChange = (event: Event): void => {
-    const target = event.target as HTMLInputElement | HTMLSelectElement;
-    if (target.getAttribute('data-filter') === 'client') {
-      this.clientFilter = target.value;
+    const target = event.target as HTMLSelectElement;
+    const filter = target.getAttribute('data-filter');
+    if (filter === 'type') {
+      this.filterType = target.value;
       this.rerender();
-      return;
-    }
-    const field = target.getAttribute('data-field');
-    if (field === 'listType') {
-      this.listType = (target as HTMLSelectElement).value as 'whitelist' | 'blacklist';
-    } else if (field === 'csvFile') {
-      const fileInput = target as HTMLInputElement;
-      const file = fileInput.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.csvData = String(reader.result);
-          this.parseCsvPreview();
-          this.rerender();
-        };
-        reader.readAsText(file);
-      }
+    } else if (filter === 'source') {
+      this.filterSource = target.value;
+      this.rerender();
+    } else if (filter === 'status') {
+      this.filterStatus = target.value;
+      this.rerender();
     }
   };
 
-  private parseCsvPreview(): void {
-    const result = parseCsv(this.csvData);
-    this.csvRowCount = result.rowCount;
-    this.csvPreview = this.csvData.slice(0, 2000);
-    this.isSourceValidated = result.rowCount > 0;
+  private handleAudienceCreated = (): void => {
+    this.isModalOpen = false;
+    void this.loadAudiences();
+  };
+
+  private formatSource(source: string): string {
+    const map: Record<string, string> = {
+      'website_activity': 'Website',
+      'app_activity': 'App',
+      'product_service_activity': 'Product/Service',
+      'advertising_activity': 'Advertising',
+      'customer_list': 'Customer List',
+      'lead_list': 'Lead Form',
+      'offline_activity': 'Offline',
+      'catalogue': 'Catalogue',
+      'v4connectt_sources': 'V4Connectt'
+    };
+    return map[source] || source;
   }
 
-  private validateApi(): void {
-    // Client-side validation: URL format check only.
-    // Real connection test belongs server-side.
-    try {
-      new URL(this.apiUrl);
-      this.isSourceValidated = this.apiUrl.length > 0;
-    } catch {
-      this.isSourceValidated = false;
-    }
+  private formatNumber(num: number): string {
+    return new Intl.NumberFormat('en-US').format(num);
   }
 
-  private validateCsvLink(): void {
-    try {
-      new URL(this.csvLinkUrl);
-      // In a real impl, we'd fetch the link and parse it.
-      // For now, client-side validation = URL is well-formed.
-      this.isSourceValidated = this.csvLinkUrl.length > 0;
-    } catch {
-      this.isSourceValidated = false;
-    }
+  private formatDate(date: Date): string {
+    return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
   }
 
-  private resetForm(): void {
-    this.name = '';
-    this.listType = 'whitelist';
-    this.comments = '';
-    this.activeSource = 'csv_file';
-    this.csvData = '';
-    this.apiUrl = '';
-    this.apiKey = '';
-    this.csvLinkUrl = '';
-    this.isSourceValidated = false;
-    this.csvPreview = '';
-    this.csvRowCount = 0;
-  }
-
-  private async handleSave(): Promise<void> {
-    if (!this.canSave) return;
-    const dataSource = this.buildDataSource();
-    await audienceService.createAudience({
-      name: this.name,
-      listType: this.listType,
-      comments: this.comments || null,
-      dataSource,
-    });
-    this.isDrawerOpen = false;
-    await this.loadAudiences();
-  }
-
-  private buildDataSource() {
-    if (this.activeSource === AudienceDataSource.CsvFile) {
-      return { type: AudienceDataSource.CsvFile, csvData: this.csvData, validated: this.isSourceValidated };
-    }
-    if (this.activeSource === AudienceDataSource.Api) {
-      return { type: AudienceDataSource.Api, apiUrl: this.apiUrl, apiKey: this.apiKey, validated: this.isSourceValidated };
-    }
-    return { type: AudienceDataSource.CsvLink, csvLinkUrl: this.csvLinkUrl, validated: this.isSourceValidated };
-  }
-
-  private get canSave(): boolean {
-    return this.name.trim().length > 0 && this.isSourceValidated;
+  private formatTime(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(date);
   }
 
   protected renderTemplate(): string {
-    if (this.isLoading) {
-      return html`<loading-state variant="skeleton" shape="table-rows"></loading-state>`;
-    }
+    const items = this.filteredAudiences;
+    
+    // KPI Data calculation
+    const totalAudiences = this.audiences.length;
+    let totalReachable = 0;
+    let activeAudiences = 0;
+    let recentlyUpdated = 0;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    this.audiences.forEach(a => {
+      totalReachable += a.estimatedSize;
+      if (a.status === 'active') activeAudiences++;
+      if (a.updatedAt >= sevenDaysAgo) recentlyUpdated++;
+    });
+
+    const formatMillions = (num: number) => {
+      if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    };
+
     return html`
       <div class="page-header">
-        <h1 class="page-title">Audiences</h1>
-        <button class="create-btn" data-action="create" type="button">+ Create Audience</button>
+        <div>
+          <h1 class="page-title">Audience</h1>
+          <p class="page-subtitle">Create, manage, and target the right audience for your business across the V4Connectt ecosystem.</p>
+        </div>
+        <button class="create-btn" data-action="create">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Create Audience
+        </button>
       </div>
-      ${this.crossClientMode ? SafeHtmlString.trusted(this.renderClientFilter()) : ''}
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrapper blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Total Audiences</span>
+            <span class="kpi-value">${totalAudiences}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrapper blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Total Reachable Users</span>
+            <span class="kpi-value">${formatMillions(totalReachable)}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrapper green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Active Audiences</span>
+            <span class="kpi-value">${activeAudiences}</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrapper indigo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Recently Updated</span>
+            <span class="kpi-value">${recentlyUpdated} <span class="kpi-sub">in last 7 days</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-bar">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" class="search-input" data-field="search" placeholder="Search audiences by name, description, or source..." value="${this.searchTerm}">
+        </div>
+        <select class="filter-select" data-filter="type">
+          <option value="">All Types</option>
+          <option value="custom">Custom</option>
+          <option value="lookalike">Lookalike</option>
+          <option value="saved">Saved</option>
+        </select>
+        <select class="filter-select" data-filter="source">
+          <option value="">All Sources</option>
+          <option value="website_activity">Website</option>
+          <option value="app_activity">App</option>
+          <option value="v4connectt_sources">V4Connectt</option>
+          <option value="customer_list">Customer List</option>
+          <option value="lead_list">Lead Form</option>
+        </select>
+        <select class="filter-select" data-filter="status">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="processing">Processing</option>
+          <option value="archived">Archived</option>
+        </select>
+        <select class="filter-select">
+          <option>Last Updated</option>
+          <option>Name A-Z</option>
+          <option>Size (High-Low)</option>
+        </select>
+      </div>
+
       <div class="table-container">
         <table>
           <thead>
-            <tr>${this.crossClientMode ? '<th>Client</th>' : ''}<th>Audience ID</th><th>Name</th><th>No. of Users</th><th>White Listed</th><th>Black Listed</th><th>Created On</th></tr>
+            <tr>
+              <th class="checkbox-cell"><input type="checkbox"></th>
+              <th>Audience Name</th>
+              <th>Type</th>
+              <th>Source</th>
+              <th>Estimated Size ℹ️</th>
+              <th>Status</th>
+              <th>Last Updated</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
-            ${SafeHtmlString.trusted(this.renderRows())}
+            ${this.isLoading 
+              ? SafeHtmlString.trusted('<tr><td colspan="8"><loading-state variant="skeleton" shape="table-rows"></loading-state></td></tr>')
+              : items.length === 0 
+                ? SafeHtmlString.trusted('<tr><td colspan="8" style="text-align:center; padding:40px; color:#64748b;">No audiences found</td></tr>')
+                : SafeHtmlString.trusted(items.map(a => `
+                  <tr class="audience-row" data-id="${a.id}" style="cursor:pointer;">
+                    <td class="checkbox-cell"><input type="checkbox"></td>
+                    <td>
+                      <div class="aud-name" style="color: #2563eb;">${a.name}</div>
+                      <div class="aud-desc">${a.description}</div>
+                    </td>
+                    <td><span class="type-badge type-${a.audienceType}">${a.audienceType.charAt(0).toUpperCase() + a.audienceType.slice(1)}</span></td>
+                    <td><span class="source-text">${this.formatSource(a.dataSource.type)}</span></td>
+                    <td>${this.formatNumber(a.estimatedSize)}</td>
+                    <td>
+                      <div class="status-cell">
+                        <div class="status-dot dot-${a.status}"></div>
+                        <span class="status-text">${a.status}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="date-text">
+                        <span>${this.formatDate(a.updatedAt)}</span>
+                        <span class="date-time">${this.formatTime(a.updatedAt)}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <button class="actions-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                      </button>
+                    </td>
+                  </tr>
+                `).join(''))
+            }
           </tbody>
         </table>
-      </div>
-      ${this.isDrawerOpen ? SafeHtmlString.trusted(this.renderDrawer()) : ''}
-    `;
-  }
-
-  private renderRows(): string {
-    const filtered = this.crossClientMode && this.clientFilter
-      ? this.audiences.filter((a) => a.clientId === this.clientFilter)
-      : this.audiences;
-    if (filtered.length === 0) {
-      return '<tr><td colspan="7" style="text-align:center;color:var(--color-text-muted);">No audiences yet</td></tr>';
-    }
-    return filtered.map((a) => `
-      <tr>
-        ${this.crossClientMode ? `<td>${a.clientId}</td>` : ''}
-        <td>${a.id}</td>
-        <td>${a.name}</td>
-        <td>${a.userCount}</td>
-        <td>${a.whiteListedCount}</td>
-        <td>${a.blackListedCount}</td>
-        <td>${a.createdAt.toLocaleDateString()}</td>
-      </tr>
-    `).join('');
-  }
-
-  private renderClientFilter(): string {
-    const clientIds = [...new Set(this.audiences.map((a) => a.clientId))];
-    const options = clientIds.map((id) => `<option value="${id}" ${this.clientFilter === id ? 'selected' : ''}>${id}</option>`).join('');
-    return `<div style="margin-bottom:var(--space-3);"><select class="type-select" data-filter="client"><option value="">All Clients</option>${options}</select></div>`;
-  }
-
-  private renderDrawer(): string {
-    return html`
-      <div class="drawer-overlay">
-        <div class="drawer">
-          <button class="close-btn" data-action="cancel" type="button">×</button>
-          <h2 class="drawer-title">Create Audience</h2>
-          <div class="field-group">
-            <label class="field-label">Name</label>
-            <input type="text" class="field-input" data-field="name" value="${this.name}" placeholder="My Audience">
-          </div>
-          <div class="field-group">
-            <label class="field-label">List Type</label>
-            <select class="type-select" data-field="listType">
-              <option value="whitelist" ${this.listType === 'whitelist' ? 'selected' : ''}>Whitelist</option>
-              <option value="blacklist" ${this.listType === 'blacklist' ? 'selected' : ''}>Blacklist</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Comments</label>
-            <textarea class="field-textarea" data-field="comments" placeholder="Optional notes">${this.comments}</textarea>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Data Source</label>
-            <div class="source-tabs">
-              <button class="source-tab ${this.activeSource === 'csv_file' ? 'active' : ''}" data-source-tab="csv_file" type="button">Upload CSV File</button>
-              <button class="source-tab ${this.activeSource === 'api' ? 'active' : ''}" data-source-tab="api" type="button">Connect Through API</button>
-              <button class="source-tab ${this.activeSource === 'csv_link' ? 'active' : ''}" data-source-tab="csv_link" type="button">Upload CSV Link</button>
-            </div>
-          </div>
-          ${SafeHtmlString.trusted(this.renderSourcePanel())}
-          <div class="drawer-actions">
-            <button class="save-btn" data-action="save" type="button" ${this.canSave ? '' : 'disabled'}>Save</button>
-            <button class="cancel-btn" data-action="cancel" type="button">Cancel</button>
+        <div class="pagination-footer">
+          <span class="showing-text">Showing 1 - ${Math.min(8, items.length)} of ${items.length} audiences</span>
+          <div class="pagination-controls">
+            <button class="page-btn">&lt;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">&gt;</button>
           </div>
         </div>
       </div>
-    `;
-  }
-
-  private renderSourcePanel(): string {
-    if (this.activeSource === 'csv_file') {
-      return html`
-        <div class="field-group">
-          <label class="field-label">CSV File</label>
-          <input type="file" class="field-input" data-field="csvFile" accept=".csv,text/csv">
-          ${this.csvPreview ? `<div class="csv-preview">${this.csvPreview}</div><p class="row-count">${this.csvRowCount} data rows detected</p>` : ''}
-          ${this.isSourceValidated ? '<p class="validation-msg ok">✓ CSV validated</p>' : ''}
-        </div>
-      `;
-    }
-    if (this.activeSource === 'api') {
-      return html`
-        <div class="field-group">
-          <label class="field-label">API URL</label>
-          <input type="text" class="field-input" data-field="apiUrl" value="${this.apiUrl}" placeholder="https://api.example.com/users">
-        </div>
-        <div class="field-group">
-          <label class="field-label">API Key</label>
-          <input type="password" class="field-input" data-field="apiKey" value="${this.apiKey}" placeholder="••••••••">
-        </div>
-        <button class="test-btn" data-action="test-api" type="button">Test Connection</button>
-        ${this.isSourceValidated ? '<p class="validation-msg ok">✓ Connection validated</p>' : (this.apiUrl ? '<p class="validation-msg fail">Click Test Connection to validate</p>' : '')}
-      `;
-    }
-    return html`
-      <div class="field-group">
-        <label class="field-label">CSV Link URL</label>
-        <input type="text" class="field-input" data-field="csvLinkUrl" value="${this.csvLinkUrl}" placeholder="https://example.com/data.csv">
-        <button class="test-btn" data-action="validate-link" type="button">Validate Link</button>
-        ${this.isSourceValidated ? '<p class="validation-msg ok">✓ Link validated</p>' : (this.csvLinkUrl ? '<p class="validation-msg fail">Click Validate Link to validate</p>' : '')}
-      </div>
+      ${this.isModalOpen ? SafeHtmlString.trusted('<audience-wizard></audience-wizard>') : ''}
     `;
   }
 }

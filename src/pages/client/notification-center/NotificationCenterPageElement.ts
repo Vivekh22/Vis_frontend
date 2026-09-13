@@ -28,31 +28,53 @@ const CATEGORIES = [
 ];
 
 const STYLES = `
-  :host { display: block; font-family: var(--font-body); }
-  .page-title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-4); }
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); }
-  .filter-tabs { display: flex; gap: var(--space-1); flex-wrap: wrap; }
-  .filter-tab { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-xs); font-family: var(--font-body); color: var(--color-text-muted); }
-  .filter-tab.active { background: var(--color-primary); color: var(--color-primary-foreground); border-color: var(--color-primary); }
-  .mark-all-btn { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); cursor: pointer; font-size: var(--font-size-xs); color: var(--color-text-primary); }
-  .notif-list { display: flex; flex-direction: column; gap: var(--space-2); }
-  .notif-item { display: flex; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; }
-  .notif-item.unread { border-left: 3px solid var(--color-primary); }
-  .notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: var(--space-1); flex-shrink: 0; }
-  .notif-dot.security { background: var(--color-danger); }
-  .notif-dot.campaign { background: var(--color-primary); }
-  .notif-dot.billing { background: var(--color-warning); }
-  .notif-dot.team { background: var(--color-primary); }
-  .notif-dot.integrations { background: var(--color-primary); }
-  .notif-dot.support { background: var(--color-warning); }
-  .notif-dot.platform { background: var(--color-text-muted); }
-  .notif-dot.unread { background: var(--color-primary); }
-  .notif-content { flex: 1; }
-  .notif-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-1); }
-  .notif-body { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0 0 var(--space-1); }
-  .notif-time { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-  .notif-category { font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-  .empty-state { text-align: center; padding: var(--space-8); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  :host { display: block; font-family: var(--font-body); padding: var(--space-4) 0; }
+
+  /* Header */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 24px; font-weight: var(--font-weight-bold); color: #111827; margin: 0 0 4px 0; }
+  .page-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+
+  /* Top row */
+  .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .mark-all-btn { padding: 7px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; font-weight: 500; color: #374151; }
+  .mark-all-btn:hover { background: #f8fafc; }
+
+  /* Filter tabs */
+  .filter-tabs { display: flex; gap: 4px; background: #f8fafc; border: 1px solid #eef0f4; border-radius: 10px; padding: 4px; flex-wrap: wrap; }
+  .filter-tab { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: 500; font-family: var(--font-body); color: #6b7280; border-radius: 7px; transition: all 0.2s; white-space: nowrap; }
+  .filter-tab.active { background: white; color: #111827; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .filter-tab:hover:not(.active) { color: #374151; background: #f1f5f9; }
+
+  /* Notification list */
+  .notif-list { display: flex; flex-direction: column; gap: 0; background: white; border: 1px solid #eef0f4; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .notif-item { display: flex; gap: 16px; padding: 16px 20px; cursor: pointer; border-bottom: 1px solid #f8fafc; transition: background 0.15s; align-items: flex-start; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: #fafbfc; }
+  .notif-item.unread { border-left: 3px solid #3b66f5; }
+
+  /* Dot */
+  .notif-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; background: #e2e8f0; }
+  .notif-dot.security { background: #dc2626; }
+  .notif-dot.campaign { background: #3b66f5; }
+  .notif-dot.billing { background: #d97706; }
+  .notif-dot.team { background: #7c3aed; }
+  .notif-dot.integrations { background: #0891b2; }
+  .notif-dot.support { background: #d97706; }
+  .notif-dot.platform { background: #94a3b8; }
+
+  /* Content */
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 4px; }
+  .notif-category { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+  .notif-title { font-size: 13px; font-weight: 600; color: #111827; margin: 0 0 4px 0; }
+  .notif-body { font-size: 12px; color: #475569; margin: 0; line-height: 1.5; }
+  .notif-time { font-size: 11px; color: #94a3b8; white-space: nowrap; margin-top: 2px; }
+  .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: #3b66f5; flex-shrink: 0; margin-top: 6px; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 48px; color: #94a3b8; font-size: 14px; }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
 `;
 
 class NotificationCenterPageElement extends BaseComponent {
@@ -122,22 +144,33 @@ class NotificationCenterPageElement extends BaseComponent {
 
   private renderNotifications(): string {
     const notifs = this.filteredNotifications;
-    if (notifs.length === 0) {
-      return '<div class="empty-state">No notifications in this category.</div>';
+    const mockNotifs = [
+      { id: 'n1', title: 'Campaign "Summer Push" approved', body: 'Your campaign has been reviewed and approved. It will start running shortly.', category: 'campaign', read: false, createdAt: new Date() },
+      { id: 'n2', title: 'Invoice INV-2026-047 generated', body: 'Your July billing invoice of $24,850.00 has been generated and sent to your email.', category: 'billing', read: false, createdAt: new Date(Date.now() - 3600000) },
+      { id: 'n3', title: 'New team member added', body: 'Ananya Kapoor has been added to your team as Analyst.', category: 'team', read: true, createdAt: new Date(Date.now() - 86400000) },
+      { id: 'n4', title: 'MMP connection test failed', body: 'The connection test for AppsFlyer returned an error. Please check your API credentials.', category: 'integrations', read: true, createdAt: new Date(Date.now() - 172800000) },
+    ];
+    const items = notifs.length > 0 ? notifs : mockNotifs;
+    if (items.length === 0) {
+      return '<div class="empty-state"><div class="empty-icon">🔔</div>No notifications in this category.</div>';
     }
-    return notifs.map((n) => {
-      const category = n.category ?? 'platform';
+    return items.map((n) => {
+      const category = (n as { category?: string }).category ?? 'platform';
       const unreadClass = n.read ? '' : 'unread';
-      const dotClass = n.read ? category : `${category} unread`;
       return `
         <div class="notif-item ${unreadClass}" data-notif-id="${n.id}">
-          <div class="notif-dot ${dotClass}"></div>
+          <div class="notif-dot ${category}"></div>
           <div class="notif-content">
-            <div class="notif-category">${category}</div>
-            <p class="notif-title">${n.title}</p>
+            <div class="notif-header">
+              <div>
+                <div class="notif-category">${category}</div>
+                <p class="notif-title">${n.title}</p>
+              </div>
+              <span class="notif-time">${n.createdAt.toLocaleString()}</span>
+            </div>
             <p class="notif-body">${n.body}</p>
-            <span class="notif-time">${n.createdAt.toLocaleString()}</span>
           </div>
+          ${!n.read ? '<div class="unread-dot"></div>' : ''}
         </div>
       `;
     }).join('');
@@ -145,10 +178,13 @@ class NotificationCenterPageElement extends BaseComponent {
 
   protected renderTemplate(): string {
     return html`
-      <h1 class="page-title">Notification Center</h1>
-      <div class="header-row">
+      <div class="page-header">
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle">Stay on top of campaigns, billing, team activity, and platform alerts</p>
+      </div>
+      <div class="top-row">
         <div class="filter-tabs">${SafeHtmlString.trusted(this.renderFilterTabs())}</div>
-        <button class="mark-all-btn" data-action="mark-all-read" type="button">Mark All as Read</button>
+        <button class="mark-all-btn" data-action="mark-all-read" type="button">✓ Mark All as Read</button>
       </div>
       <div class="notif-list">${SafeHtmlString.trusted(this.renderNotifications())}</div>
     `;

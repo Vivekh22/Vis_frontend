@@ -40,6 +40,22 @@ export class AppListService {
     return await this.appListRepo.save(entry);
   }
 
+  async updateAppList(id: string, data: AppListCreateData): Promise<AppListEntry> {
+    const existing = await this.appListRepo.findById(id);
+    if (!existing) throw new Error(`AppList with id ${id} not found`);
+    const updated = new AppListEntry(
+      existing.id,
+      data.name,
+      data.appBundles,
+      data.placementIds,
+      data.urls,
+      data.listType,
+      existing.createdAt,
+      existing.clientId
+    );
+    return await this.appListRepo.save(updated);
+  }
+
   async listAppLists(): Promise<AppListEntry[]> {
     return await this.appListRepo.findAll();
   }

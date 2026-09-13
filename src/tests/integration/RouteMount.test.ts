@@ -20,6 +20,7 @@ import { CampaignWizardElement } from '../../pages/client/campaign/wizard/Campai
 import { CreativeListPageElement } from '../../pages/client/creatives/CreativeListPageElement';
 import { AppListPageElement } from '../../pages/client/app-list/AppListPageElement';
 import { AudiencePageElement } from '../../pages/client/audience/AudiencePageElement';
+import { AudienceDetailsPageElement } from '../../pages/client/audience/details/AudienceDetailsPageElement';
 import { FundPageElement } from '../../pages/client/fund/FundPageElement';
 import { InvoicesBillingPageElement } from '../../pages/client/invoices-billing/InvoicesBillingPageElement';
 import { ReportsPageElement } from '../../pages/client/reports/ReportsPageElement';
@@ -76,6 +77,7 @@ describe('Route Mount Integration Tests', () => {
     new Route({ path: '/client/creatives/new', component: CreativeListPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
     new Route({ path: '/client/app-lists', component: AppListPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
     new Route({ path: '/client/audiences', component: AudiencePageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
+    new Route({ path: '/client/audiences/:id', component: AudienceDetailsPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
     new Route({ path: '/client/fund', component: FundPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
     new Route({ path: '/client/invoices', component: InvoicesBillingPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
     new Route({ path: '/client/reports', component: ReportsPageElement, requiredRole: ['client'], requiredPermission: null, layoutComponent: ClientLayoutElement }),
